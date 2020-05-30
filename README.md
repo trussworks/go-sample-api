@@ -128,6 +128,18 @@ go build -a -o bin/bork ./cmd/bork
 
 You can then access the tool with the `bork` command.
 
+#### air
+
+Alternatively to manually building the app,
+you can run the server and reload files with air:
+
+```bash
+# outside of a Go project,
+# to install globally
+go get -u github.com/cosmtrek/air
+air
+```
+
 ### Migrating the Database
 
 To add a new migration, add a new file to the `migrations` directory
