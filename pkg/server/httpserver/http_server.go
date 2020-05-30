@@ -42,8 +42,6 @@ func NewServer(config *viper.Viper) *Server {
 	// Set the router
 	r := mux.NewRouter()
 
-	// TODO: set up routes
-
 	s := &Server{
 		router:      r,
 		Config:      config,
@@ -52,6 +50,8 @@ func NewServer(config *viper.Viper) *Server {
 	}
 
 	s.url = s.NewURL()
+
+	s.routes()
 
 	return s
 }
