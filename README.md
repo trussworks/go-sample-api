@@ -123,7 +123,7 @@ So this is customization that is up to you.
 To build the cli application in your local filesystem:
 
 ```sh
-go build -a -o bin/easi ./cmd/bork
+go build -a -o bin/bork ./cmd/bork
 ```
 
 You can then access the tool with the `bork` command.

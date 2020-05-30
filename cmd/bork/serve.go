@@ -5,6 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"bin/bork/pkg/server/httpserver"
 )
 
 var serveCmd = &cobra.Command{
@@ -15,6 +17,6 @@ var serveCmd = &cobra.Command{
 		config := viper.New()
 		config.AutomaticEnv()
 		fmt.Println("Serving the bork application")
+		httpserver.Serve(config)
 	},
 }
-
