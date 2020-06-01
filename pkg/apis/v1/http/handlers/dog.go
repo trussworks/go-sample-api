@@ -12,13 +12,13 @@ import (
 // NewDogHandler is a constructor for a DogHandler
 func NewDogHandler(base HandlerBase) DogHandler {
 	return DogHandler{
-		base: base,
+		base,
 	}
 }
 
 // DogHandler is the handler for CRUD operations on dog resources
 type DogHandler struct {
-	base HandlerBase
+	HandlerBase
 }
 
 // Handle handles a request for the system intake form
@@ -26,8 +26,8 @@ func (h DogHandler) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger, ok := appcontext.Logger(r.Context())
 		if !ok {
-			h.base.logger.Error("Failed to get logger from context in system intake handler")
-			logger = h.base.logger
+			h.logger.Error("Failed to get logger from context in system intake handler")
+			logger = h.logger
 		}
 
 		switch r.Method {
