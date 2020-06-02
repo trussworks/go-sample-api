@@ -9,6 +9,8 @@ import (
 	"bin/bork/pkg/appcontext"
 )
 
+//type fetchDog func(ctx context.Context, id uuid.UUID) (*models.Dog, error)
+
 // NewDogHandler is a constructor for a DogHandler
 func NewDogHandler(base HandlerBase) DogHandler {
 	return DogHandler{
