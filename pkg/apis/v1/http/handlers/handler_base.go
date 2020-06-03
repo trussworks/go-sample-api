@@ -38,6 +38,23 @@ type errorResponse struct {
 	Message string      `json:"message"`
 }
 
+func newErrorResponse(code int, message string) errorResponse {
+	return errorResponse{
+		Errors:  []errorItem{},
+		Code:    code,
+		Message: message,
+	}
+}
+
+func (r *errorResponse) withValidations(validations apperrors.Validations) {
+	for k, v := range validations {
+		r.Errors = append(r.Errors, errorItem{
+			Field:   k,
+			Message: v,
+		})
+	}
+}
+
 // WriteErrorResponse writes a response for a given application error
 func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWriter, appErr error) {
 	logger, ok := appcontext.Logger(ctx)
@@ -48,36 +65,44 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 	// get code and response
 	var code int
 	var response errorResponse
-	switch appErr.(type) {
+	switch appErr := appErr.(type) {
 	case *apperrors.UnauthorizedError:
 		// 4XX errors are not logged as errors, but are for client
 		logger.Info("Returning unauthorized response from handler", zap.Error(appErr))
 		code = http.StatusUnauthorized
-		response = errorResponse{
-			Code:    http.StatusUnauthorized,
-			Message: "Unauthorized",
-		}
+		response = newErrorResponse(
+			http.StatusUnauthorized,
+			"Unauthorized",
+		)
 	case *apperrors.QueryError:
 		logger.Error("Returning server error response from handler", zap.Error(appErr))
 		code = http.StatusInternalServerError
-		response = errorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Something went wrong",
-		}
+		response = newErrorResponse(
+			http.StatusInternalServerError,
+			"Something went wrong",
+		)
 	case *apperrors.ContextError:
-		logger.Error("Returning unknown error response from handler", zap.Error(appErr))
+		logger.Error("Returning server error response from handler", zap.Error(appErr))
 		code = http.StatusInternalServerError
-		response = errorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Something went wrong",
-		}
+		response = newErrorResponse(
+			http.StatusInternalServerError,
+			"Something went wrong",
+		)
+	case *apperrors.ValidationError:
+		logger.Error("Returning bad request error from handler", zap.Error(appErr))
+		code = http.StatusBadRequest
+		response = newErrorResponse(
+			http.StatusBadRequest,
+			"Bad request",
+		)
+		response.withValidations(appErr.Validations)
 	default:
 		logger.Error("Returning server error response from handler", zap.Error(appErr))
 		code = http.StatusInternalServerError
-		response = errorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Something went wrong",
-		}
+		response = newErrorResponse(
+			http.StatusInternalServerError,
+			"Something went wrong",
+		)
 	}
 
 	// get error as response body

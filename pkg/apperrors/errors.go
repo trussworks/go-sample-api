@@ -1,6 +1,7 @@
 package apperrors
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"bin/bork/pkg/models"
@@ -103,5 +104,45 @@ func (e *ContextError) Error() string {
 
 // Unwrap provides the underlying error
 func (e *ContextError) Unwrap() error {
+	return e.Err
+}
+
+// Validations maps attributes to validation messages
+type Validations map[string]string
+
+// NewValidationError returns a validation error with fields instantiated
+func NewValidationError(err error, resource interface{}, resourceID string) ValidationError {
+	return ValidationError{
+		Err:         err,
+		Validations: Validations{},
+		Resource:    resource,
+		ResourceID:  resourceID,
+	}
+}
+
+// ValidationError is a typed error for issues with validation
+type ValidationError struct {
+	Err         error
+	Validations Validations
+	Resource    interface{}
+	ResourceID  string
+}
+
+// WithValidation allows a failed validation message be added to the ValidationError
+func (e ValidationError) WithValidation(key string, message string) {
+	e.Validations[key] = message
+}
+
+// Error provides the error as a string
+func (e *ValidationError) Error() string {
+	data, err := json.Marshal(e.Validations)
+	if err != nil {
+		return err.Error()
+	}
+	return fmt.Sprintf("Could not validate %T %s: %s", e.Resource, e.ResourceID, string(data))
+}
+
+// Unwrap provides the underlying error
+func (e *ValidationError) Unwrap() error {
 	return e.Err
 }
