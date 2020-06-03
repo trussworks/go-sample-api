@@ -12,7 +12,7 @@ import (
 	"bin/bork/pkg/appconfig"
 )
 
-// Server holds dependencies for running the EASi server
+// Server holds dependencies for running the bork server
 type Server struct {
 	router      *mux.Router
 	Config      *viper.Viper

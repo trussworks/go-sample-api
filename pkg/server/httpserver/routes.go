@@ -10,6 +10,12 @@ import (
 )
 
 func (s *Server) routes() {
+	// health check goes directly on the main router to avoid auth
+	healthCheckHandler := handlers.HealthCheckHandler{
+		Config: s.Config,
+	}
+	s.router.HandleFunc("/api/v1/healthcheck", healthCheckHandler.Handle())
+
 	api := s.router.PathPrefix("/api/v1").Subrouter()
 
 	// set up base handler

@@ -84,6 +84,7 @@ func (h DogHandler) Handle() http.HandlerFunc {
 				return
 			}
 
+			w.Header().Set("Content-Type", "application/json")
 			_, err = w.Write(responseBody)
 			if err != nil {
 				h.WriteErrorResponse(r.Context(), w, err)
