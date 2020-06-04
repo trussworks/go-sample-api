@@ -89,13 +89,20 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 			"Something went wrong",
 		)
 	case *apperrors.ValidationError:
-		logger.Error("Returning bad request error from handler", zap.Error(appErr))
+		logger.Info("Returning bad request error from handler", zap.Error(appErr))
 		code = http.StatusBadRequest
 		response = newErrorResponse(
 			http.StatusBadRequest,
 			"Bad request",
 		)
 		response.withValidations(appErr.Validations)
+	case *apperrors.MethodNotAllowedError:
+		logger.Info("Returning method not allowed error from handler", zap.Error(appErr))
+		code = http.StatusMethodNotAllowed
+		response = newErrorResponse(
+			http.StatusMethodNotAllowed,
+			"Method not allowed",
+		)
 	default:
 		logger.Error("Returning server error response from handler", zap.Error(appErr))
 		code = http.StatusInternalServerError

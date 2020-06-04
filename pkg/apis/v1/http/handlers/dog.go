@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 
-	"bin/bork/pkg/appcontext"
 	"bin/bork/pkg/apperrors"
 	"bin/bork/pkg/models"
 )
@@ -33,12 +32,6 @@ type DogHandler struct {
 // Handle handles a request for the system intake form
 func (h DogHandler) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logger, ok := appcontext.Logger(r.Context())
-		if !ok {
-			h.logger.Error("Failed to get logger from context in system intake handler")
-			logger = h.logger
-		}
-
 		switch r.Method {
 		case "GET":
 			idString := mux.Vars(r)["dog_id"]
@@ -94,8 +87,7 @@ func (h DogHandler) Handle() http.HandlerFunc {
 			return
 
 		default:
-			logger.Info("Unsupported method requested")
-			http.Error(w, "Method not allowed for system intake", http.StatusMethodNotAllowed)
+			h.WriteErrorResponse(r.Context(), w, &apperrors.MethodNotAllowedError{Method: r.Method})
 			return
 		}
 	}

@@ -78,6 +78,15 @@ func (s HandlerTestSuite) TestWriteErrorResponse() {
 			},
 		},
 		{
+			&apperrors.MethodNotAllowedError{},
+			http.StatusMethodNotAllowed,
+			errorResponse{
+				Errors:  []errorItem{},
+				Code:    http.StatusMethodNotAllowed,
+				Message: "Method not allowed",
+			},
+		},
+		{
 			errors.New("unknown error"),
 			http.StatusInternalServerError,
 			errorResponse{

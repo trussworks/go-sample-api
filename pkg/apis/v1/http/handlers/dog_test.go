@@ -52,7 +52,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		s.Equal(dog.ID, responseDog.ID)
 	})
 
-	s.Run("no ID returns 400", func() {
+	s.Run("GET wth no ID returns 400", func() {
 		rr := httptest.NewRecorder()
 		req, err := http.NewRequestWithContext(
 			requestContext,
@@ -71,7 +71,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		s.Equal(http.StatusBadRequest, rr.Code)
 	})
 
-	s.Run("bad ID returns 400", func() {
+	s.Run("GET with bad ID returns 400", func() {
 		rr := httptest.NewRecorder()
 		req, err := http.NewRequestWithContext(
 			requestContext,
@@ -90,7 +90,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		s.Equal(http.StatusBadRequest, rr.Code)
 	})
 
-	s.Run("fetch failing returns 500", func() {
+	s.Run("GET with fetch failing returns 500", func() {
 		failFetchDog := func(ctx context.Context, id uuid.UUID) (*models.Dog, error) {
 			return nil, errors.New("failed to fetch dog")
 		}
@@ -110,5 +110,24 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		}.Handle()(rr, req)
 
 		s.Equal(http.StatusInternalServerError, rr.Code)
+	})
+
+	s.Run("unsupported method returns 405", func() {
+		rr := httptest.NewRecorder()
+		req, err := http.NewRequestWithContext(
+			requestContext,
+			"OPTIONS",
+			fmt.Sprintf("/dog/%s", dog.ID.String()),
+			bytes.NewBufferString(""),
+		)
+		s.NoError(err)
+		req = mux.SetURLVars(req, map[string]string{"dog_id": dog.ID.String()})
+
+		DogHandler{
+			s.base,
+			fakeFetchDog,
+		}.Handle()(rr, req)
+
+		s.Equal(http.StatusMethodNotAllowed, rr.Code)
 	})
 }

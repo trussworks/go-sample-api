@@ -146,3 +146,16 @@ func (e *ValidationError) Error() string {
 func (e *ValidationError) Unwrap() error {
 	return e.Err
 }
+
+// MethodNotAllowedError is a typed error for query issues
+type MethodNotAllowedError struct {
+	Method string
+}
+
+// Error provides the error as a string
+func (e *MethodNotAllowedError) Error() string {
+	return fmt.Sprintf(
+		"Method %s not allowed",
+		e.Method,
+	)
+}
