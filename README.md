@@ -164,6 +164,14 @@ To add a new migration, add a new file to the `migrations` directory
 following the standard
 `V_${last_migration_version + 1}_your_migration_name_here.sql`
 
+## Testing
+
+Run tests with:
+
+```bash
+    go test ./pkg/...
+```
+
 ## Development and Debugging
 
 ### APIs
