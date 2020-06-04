@@ -19,4 +19,5 @@ type Dog struct {
 	Name      string    `json:"name" db:"name"`
 	Breed     DogBreed  `json:"breed" db:"breed"`
 	BirthDate time.Time `json:"birthDate" db:"birth_date"`
+	OwnerID   string    `json:"owner_id" db:"owner_id"`
 }

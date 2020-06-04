@@ -12,6 +12,15 @@ import (
 	"bin/bork/pkg/models"
 )
 
+func NewAuthorizeFetchDog() func(user models.User, dog *models.Dog) (bool, error) {
+	return func(user models.User, dog *models.Dog) (bool, error) {
+		if dog.OwnerID == user.ID {
+			return true, nil
+		}
+		return false, nil
+	}
+}
+
 // NewFetchDog returns a service function for fetching a dog
 func (f ServiceFactory) NewFetchDog(
 	authorize func(user models.User, dog *models.Dog) (bool, error),

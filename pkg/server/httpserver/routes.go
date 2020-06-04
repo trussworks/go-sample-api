@@ -4,7 +4,6 @@ import (
 	"go.uber.org/zap"
 
 	"bin/bork/pkg/apis/v1/http/handlers"
-	"bin/bork/pkg/models"
 	"bin/bork/pkg/services"
 	"bin/bork/pkg/sources/postgres"
 )
@@ -42,14 +41,9 @@ func (s *Server) routes() {
 		s.logger.Fatal("Failed to connect to database", zap.Error(err))
 	}
 
-	// endpoint for dog
-	fakeAuthorize := func(user models.User, dog *models.Dog) (bool, error) {
-		return true, nil
-	}
-
 	dogHandler := handlers.NewDogHandler(
 		handlerBase,
-		serviceFactory.NewFetchDog(fakeAuthorize, store.FetchDog),
+		serviceFactory.NewFetchDog(services.NewAuthorizeFetchDog(), store.FetchDog),
 	)
 	api.Handle("/dog/{dog_id}", dogHandler.Handle())
 }

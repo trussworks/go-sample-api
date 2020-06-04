@@ -12,12 +12,35 @@ import (
 )
 
 func (s ServicesTestSuite) TestNewAuthorizeFetchDog() {
-	s.Run("golden path returns true", func() {
+	authorize := NewAuthorizeFetchDog()
+	s.Run("matching IDs returns true", func() {
+		dog := models.Dog{
+			OwnerID:   "owner",
+		}
+		user := models.User{
+			ID:    dog.OwnerID,
+		}
 
+		ok, _ := authorize(user, &dog)
+
+		s.True(ok)
+	})
+
+	s.Run("non-matching IDs returns true", func() {
+		dog := models.Dog{
+			OwnerID:   "owner",
+		}
+		user := models.User{
+			ID:    "other owner",
+		}
+
+		ok, _ := authorize(user, &dog)
+
+		s.False(ok)
 	})
 }
 
-func (s ServicesTestSuite) TestNewFetchDog() {
+func (s ServicesTestSuite) TestServiceFactory_NewFetchDog() {
 	fetchedDog := models.Dog{
 		ID:        uuid.New(),
 		Name:      "Lola",
