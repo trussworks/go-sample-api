@@ -177,3 +177,22 @@ func (e *UnknownRouteError) Error() string {
 		e.Path,
 	)
 }
+
+// BadRequestError is a typed error for bad request content
+type BadRequestError struct {
+	Err error
+}
+
+// Error provides the error as a string
+func (e *BadRequestError) Error() string {
+	return fmt.Sprintf(
+		"Request could not understood: %v",
+		e.Err,
+	)
+}
+
+// Unwrap provides the underlying error
+func (e *BadRequestError) Unwrap() error {
+	return e.Err
+}
+

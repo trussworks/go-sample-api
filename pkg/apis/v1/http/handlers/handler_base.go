@@ -80,7 +80,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		logger.Info("Returning unauthorized response from handler", zap.Error(appErr))
 		code = http.StatusUnauthorized
 		response = newErrorResponse(
-			http.StatusUnauthorized,
+			code,
 			"Unauthorized",
 			traceID,
 		)
@@ -88,7 +88,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		logger.Error("Returning server error response from handler", zap.Error(appErr))
 		code = http.StatusInternalServerError
 		response = newErrorResponse(
-			http.StatusInternalServerError,
+			code,
 			"Something went wrong",
 			traceID,
 		)
@@ -96,16 +96,16 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		logger.Error("Returning server error response from handler", zap.Error(appErr))
 		code = http.StatusInternalServerError
 		response = newErrorResponse(
-			http.StatusInternalServerError,
+			code,
 			"Something went wrong",
 			traceID,
 		)
 	case *apperrors.ValidationError:
 		logger.Info("Returning bad request error from handler", zap.Error(appErr))
-		code = http.StatusBadRequest
+		code = http.StatusUnprocessableEntity
 		response = newErrorResponse(
-			http.StatusBadRequest,
-			"Bad request",
+			code,
+			"Entity unprocessable",
 			traceID,
 		)
 		response.withMap(appErr.Validations.Map())
@@ -113,7 +113,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		logger.Info("Returning method not allowed error from handler", zap.Error(appErr))
 		code = http.StatusMethodNotAllowed
 		response = newErrorResponse(
-			http.StatusMethodNotAllowed,
+			code,
 			"Method not allowed",
 			traceID,
 		)
@@ -121,15 +121,23 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		logger.Info("Returning status not found error from handler", zap.Error(appErr))
 		code = http.StatusNotFound
 		response = newErrorResponse(
-			http.StatusNotFound,
+			code,
 			"Not found",
+			traceID,
+		)
+	case *apperrors.BadRequestError:
+		logger.Info("Returning bad request error from handler", zap.Error(appErr))
+		code = http.StatusBadRequest
+		response = newErrorResponse(
+			code,
+			"Bad request",
 			traceID,
 		)
 	default:
 		logger.Error("Returning server error response from handler", zap.Error(appErr))
 		code = http.StatusInternalServerError
 		response = newErrorResponse(
-			http.StatusInternalServerError,
+			code,
 			"Something went wrong",
 			traceID,
 		)
