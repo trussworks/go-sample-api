@@ -29,7 +29,7 @@ type DogHandler struct {
 	fetchDog fetchDog
 }
 
-// Handle handles a request for the system intake form
+// Handle handles a request for a dog
 func (h DogHandler) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
