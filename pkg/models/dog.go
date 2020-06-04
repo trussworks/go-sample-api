@@ -15,8 +15,8 @@ const (
 
 // Dog is a model for dog fields
 type Dog struct {
-	ID        uuid.UUID
-	Name      string
-	Breed     DogBreed
-	BirthDate time.Time
+	ID        uuid.UUID `json:"id" db:"id"`
+	Name      string    `json:"name" db:"name"`
+	Breed     DogBreed  `json:"breed" db:"breed"`
+	BirthDate time.Time `json:"birthDate" db:"birth_date"`
 }

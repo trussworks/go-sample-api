@@ -140,7 +140,25 @@ go get -u github.com/cosmtrek/air
 air
 ```
 
-### Migrating the Database
+### Run the Database
+
+To use the database, run:
+
+```bash
+    docker run --name bork-postgres \
+        --publish $PGPORT:5432 \
+        -e POSTGRES_DB=$PGDATABASE \
+        -e POSTGRES_PASSWORD=$PGPASS \
+        -d postgres
+```
+
+Install flyway to run migrations:
+
+```brew install flyway```
+
+Then run them with:
+
+```flway migrate```
 
 To add a new migration, add a new file to the `migrations` directory
 following the standard

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/facebookgo/clock"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // required for postgres driver in sqlx
 	"github.com/spf13/viper"
@@ -16,6 +17,7 @@ type StoreTestSuite struct {
 	suite.Suite
 	db    *sqlx.DB
 	store *Store
+	clock *clock.Mock
 }
 
 func TestStoreTestSuite(t *testing.T) {
@@ -40,6 +42,7 @@ func TestStoreTestSuite(t *testing.T) {
 		Suite: suite.Suite{},
 		db:    store.db,
 		store: store,
+		clock: clock.NewMock(),
 	}
 
 	suite.Run(t, storeTestSuite)
