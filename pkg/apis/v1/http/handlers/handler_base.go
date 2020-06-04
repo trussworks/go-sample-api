@@ -49,8 +49,8 @@ func newErrorResponse(code int, message string, traceID uuid.UUID) errorResponse
 	}
 }
 
-func (r *errorResponse) withValidations(validations apperrors.Validations) {
-	for k, v := range validations {
+func (r *errorResponse) withMap(errMap map[string]string) {
+	for k, v := range errMap {
 		r.Errors = append(r.Errors, errorItem{
 			Field:   k,
 			Message: v,
@@ -108,7 +108,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 			"Bad request",
 			traceID,
 		)
-		response.withValidations(appErr.Validations)
+		response.withMap(appErr.Validations.Map())
 	case *apperrors.MethodNotAllowedError:
 		logger.Info("Returning method not allowed error from handler", zap.Error(appErr))
 		code = http.StatusMethodNotAllowed

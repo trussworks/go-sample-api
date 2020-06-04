@@ -110,6 +110,11 @@ func (e *ContextError) Unwrap() error {
 // Validations maps attributes to validation messages
 type Validations map[string]string
 
+// Map directly returns a map in case implementation of Validations changes
+func (v Validations) Map() map[string]string {
+	return v
+}
+
 // NewValidationError returns a validation error with fields instantiated
 func NewValidationError(err error, resource interface{}, resourceID string) ValidationError {
 	return ValidationError{
