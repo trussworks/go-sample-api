@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"bin/bork/pkg/appcontext"
 	"bin/bork/pkg/apperrors"
 )
 
@@ -33,6 +34,9 @@ func (w *failWriter) Header() http.Header {
 
 func (s HandlerTestSuite) TestWriteErrorResponse() {
 	ctx := context.Background()
+	ctx = appcontext.WithTrace(ctx)
+	traceID, ok := appcontext.Trace(ctx)
+	s.True(ok)
 
 	var responseTests = []struct {
 		appErr      error
@@ -46,6 +50,7 @@ func (s HandlerTestSuite) TestWriteErrorResponse() {
 				Errors:  []errorItem{},
 				Code:    http.StatusUnauthorized,
 				Message: "Unauthorized",
+				TraceID: traceID,
 			},
 		},
 		{
@@ -55,6 +60,7 @@ func (s HandlerTestSuite) TestWriteErrorResponse() {
 				Errors:  []errorItem{},
 				Code:    http.StatusInternalServerError,
 				Message: "Something went wrong",
+				TraceID: traceID,
 			},
 		},
 		{
@@ -64,6 +70,7 @@ func (s HandlerTestSuite) TestWriteErrorResponse() {
 				Errors:  []errorItem{},
 				Code:    http.StatusInternalServerError,
 				Message: "Something went wrong",
+				TraceID: traceID,
 			},
 		},
 		{
@@ -75,6 +82,7 @@ func (s HandlerTestSuite) TestWriteErrorResponse() {
 				Errors:  []errorItem{{Field: "key", Message: "required"}},
 				Code:    http.StatusBadRequest,
 				Message: "Bad request",
+				TraceID: traceID,
 			},
 		},
 		{
@@ -84,6 +92,7 @@ func (s HandlerTestSuite) TestWriteErrorResponse() {
 				Errors:  []errorItem{},
 				Code:    http.StatusMethodNotAllowed,
 				Message: "Method not allowed",
+				TraceID: traceID,
 			},
 		},
 		{
@@ -93,6 +102,7 @@ func (s HandlerTestSuite) TestWriteErrorResponse() {
 				Errors:  []errorItem{},
 				Code:    http.StatusInternalServerError,
 				Message: "Something went wrong",
+				TraceID: traceID,
 			},
 		},
 	}

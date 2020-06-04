@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/facebookgo/clock"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"bin/bork/pkg/appcontext"
@@ -36,13 +37,15 @@ type errorResponse struct {
 	Errors  []errorItem `json:"errors"`
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
+	TraceID uuid.UUID   `json:"traceID"`
 }
 
-func newErrorResponse(code int, message string) errorResponse {
+func newErrorResponse(code int, message string, traceID uuid.UUID) errorResponse {
 	return errorResponse{
 		Errors:  []errorItem{},
 		Code:    code,
 		Message: message,
+		TraceID: traceID,
 	}
 }
 
@@ -62,6 +65,12 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		logger = b.logger
 	}
 
+	traceID, ok := appcontext.Trace(ctx)
+	if !ok {
+		traceID = uuid.New()
+		logger.With(zap.String("traceID", traceID.String()))
+	}
+
 	// get code and response
 	var code int
 	var response errorResponse
@@ -73,6 +82,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		response = newErrorResponse(
 			http.StatusUnauthorized,
 			"Unauthorized",
+			traceID,
 		)
 	case *apperrors.QueryError:
 		logger.Error("Returning server error response from handler", zap.Error(appErr))
@@ -80,6 +90,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		response = newErrorResponse(
 			http.StatusInternalServerError,
 			"Something went wrong",
+			traceID,
 		)
 	case *apperrors.ContextError:
 		logger.Error("Returning server error response from handler", zap.Error(appErr))
@@ -87,6 +98,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		response = newErrorResponse(
 			http.StatusInternalServerError,
 			"Something went wrong",
+			traceID,
 		)
 	case *apperrors.ValidationError:
 		logger.Info("Returning bad request error from handler", zap.Error(appErr))
@@ -94,6 +106,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		response = newErrorResponse(
 			http.StatusBadRequest,
 			"Bad request",
+			traceID,
 		)
 		response.withValidations(appErr.Validations)
 	case *apperrors.MethodNotAllowedError:
@@ -102,6 +115,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		response = newErrorResponse(
 			http.StatusMethodNotAllowed,
 			"Method not allowed",
+			traceID,
 		)
 	default:
 		logger.Error("Returning server error response from handler", zap.Error(appErr))
@@ -109,6 +123,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		response = newErrorResponse(
 			http.StatusInternalServerError,
 			"Something went wrong",
+			traceID,
 		)
 	}
 

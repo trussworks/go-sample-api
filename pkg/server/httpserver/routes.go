@@ -5,11 +5,13 @@ import (
 
 	"bin/bork/pkg/apis/v1/http/handlers"
 	"bin/bork/pkg/models"
-	httpserver "bin/bork/pkg/server/httpserver/middleware"
 	"bin/bork/pkg/services"
 )
 
 func (s *Server) routes() {
+	// trace all requests with an ID
+	s.router.Use(NewTraceMiddleware())
+
 	api := s.router.PathPrefix("/api/v1").Subrouter()
 
 	// set up base handler
@@ -23,7 +25,7 @@ func (s *Server) routes() {
 	s.router.HandleFunc("/api/v1/healthcheck", healthCheckHandler.Handle())
 
 	// use authorization on API
-	api.Use(httpserver.NewFakeAuthorizeMiddleware(handlerBase))
+	api.Use(NewFakeAuthorizeMiddleware(handlerBase))
 
 	// set up service factory
 	serviceFactory := services.NewServiceFactory(s.logger)
