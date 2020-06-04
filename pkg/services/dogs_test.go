@@ -15,10 +15,10 @@ func (s ServicesTestSuite) TestNewAuthorizeFetchDog() {
 	authorize := NewAuthorizeFetchDog()
 	s.Run("matching IDs returns true", func() {
 		dog := models.Dog{
-			OwnerID:   "owner",
+			OwnerID: "owner",
 		}
 		user := models.User{
-			ID:    dog.OwnerID,
+			ID: dog.OwnerID,
 		}
 
 		ok, _ := authorize(user, &dog)
@@ -28,10 +28,10 @@ func (s ServicesTestSuite) TestNewAuthorizeFetchDog() {
 
 	s.Run("non-matching IDs returns true", func() {
 		dog := models.Dog{
-			OwnerID:   "owner",
+			OwnerID: "owner",
 		}
 		user := models.User{
-			ID:    "other owner",
+			ID: "other owner",
 		}
 
 		ok, _ := authorize(user, &dog)

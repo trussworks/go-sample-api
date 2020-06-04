@@ -152,7 +152,7 @@ func (e *ValidationError) Unwrap() error {
 	return e.Err
 }
 
-// MethodNotAllowedError is a typed error for query issues
+// MethodNotAllowedError is a typed error for HTTP methods not allowed
 type MethodNotAllowedError struct {
 	Method string
 }
@@ -162,5 +162,18 @@ func (e *MethodNotAllowedError) Error() string {
 	return fmt.Sprintf(
 		"Method %s not allowed",
 		e.Method,
+	)
+}
+
+// UnknownRouteError is an error for unknown routes
+type UnknownRouteError struct {
+	Path string
+}
+
+// Error provides the error as a string
+func (e *UnknownRouteError) Error() string {
+	return fmt.Sprintf(
+		"Route %s unknown",
+		e.Path,
 	)
 }

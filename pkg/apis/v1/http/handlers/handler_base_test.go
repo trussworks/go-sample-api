@@ -96,6 +96,16 @@ func (s HandlerTestSuite) TestWriteErrorResponse() {
 			},
 		},
 		{
+			&apperrors.UnknownRouteError{},
+			http.StatusNotFound,
+			errorResponse{
+				Errors:  []errorItem{},
+				Code:    http.StatusNotFound,
+				Message: "Not found",
+				TraceID: traceID,
+			},
+		},
+		{
 			errors.New("unknown error"),
 			http.StatusInternalServerError,
 			errorResponse{

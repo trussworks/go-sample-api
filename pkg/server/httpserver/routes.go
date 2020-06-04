@@ -46,4 +46,6 @@ func (s *Server) routes() {
 		serviceFactory.NewFetchDog(services.NewAuthorizeFetchDog(), store.FetchDog),
 	)
 	api.Handle("/dog/{dog_id}", dogHandler.Handle())
+
+	s.router.PathPrefix("/").Handler(handlers.NewCatchAllHandler(handlerBase).Handle())
 }
