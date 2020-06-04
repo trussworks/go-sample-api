@@ -24,6 +24,9 @@ func (s *Server) routes() {
 	)
 	s.router.HandleFunc("/api/v1/healthcheck", healthCheckHandler.Handle())
 
+	// add a request based logger
+	api.Use(NewLoggerMiddleware(s.logger))
+
 	// use authorization on API
 	api.Use(NewFakeAuthorizeMiddleware(handlerBase))
 
