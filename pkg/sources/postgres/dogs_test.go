@@ -127,3 +127,23 @@ func (s StoreTestSuite) TestUpdateDog() {
 		s.Nil(actualDog)
 	})
 }
+
+func (s StoreTestSuite) TestFetchDogs() {
+	s.Run("fetches dogs", func() {
+		insertDog := models.Dog{
+			ID:        uuid.New(),
+			Name:      "Chihua",
+			Breed:     models.Chihuahua,
+			BirthDate: s.clock.Now(),
+			OwnerID:   "Owner",
+		}
+		expectedDog, err := s.store.CreateDog(&insertDog)
+		s.NoError(err)
+
+		dogs, err := s.store.FetchDogs()
+
+		s.NoError(err)
+		s.Len(*dogs, 1)
+		s.Equal(expectedDog.ID, (*dogs)[0].ID)
+	})
+}

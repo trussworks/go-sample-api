@@ -47,3 +47,7 @@ func TestStoreTestSuite(t *testing.T) {
 
 	suite.Run(t, storeTestSuite)
 }
+
+func (s StoreTestSuite) SetupTest() {
+	s.store.db.MustExec("TRUNCATE dog")
+}

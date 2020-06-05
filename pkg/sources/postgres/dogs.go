@@ -78,3 +78,19 @@ func (s *Store) UpdateDog(dog *models.Dog) (*models.Dog, error) {
 	}
 	return dog, nil
 }
+
+// FetchDogs queries the DB for dogs
+func (s *Store) FetchDogs() (*models.Dogs, error) {
+	dog := models.Dogs{}
+	const fetchDogsSQL = `
+		SELECT
+			*
+		FROM
+			dog`
+
+	err := s.db.Select(&dog, fetchDogsSQL)
+	if err != nil {
+		return nil, err
+	}
+	return &dog, nil
+}
