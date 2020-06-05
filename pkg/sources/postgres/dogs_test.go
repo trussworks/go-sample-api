@@ -3,6 +3,7 @@ package postgres
 import (
 	"github.com/google/uuid"
 
+	"bin/bork/pkg/apperrors"
 	"bin/bork/pkg/models"
 )
 
@@ -31,6 +32,7 @@ func (s StoreTestSuite) TestFetchDog() {
 		dog, err := s.store.FetchDog(uuid.New())
 
 		s.Error(err)
+		s.IsType(&apperrors.ResourceNotFoundError{}, err)
 		s.Nil(dog)
 	})
 }

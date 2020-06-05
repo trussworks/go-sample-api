@@ -1,8 +1,6 @@
 package httpserver
 
 import (
-	"context"
-
 	"go.uber.org/zap"
 
 	"bin/bork/pkg/apis/v1/http/handlers"
@@ -54,7 +52,11 @@ func (s *Server) routes() {
 			services.NewAuthorizeCreateDog(),
 			store.CreateDog,
 		),
-		func(ctx context.Context, dog *models.Dog) (*models.Dog, error) { return nil, nil },
+		serviceFactory.NewUpdateDog(
+			services.NewAuthorizeUpdateDog(),
+			func(dog *models.Dog) (*models.Dog, error) { return nil, nil },
+			store.FetchDog,
+		),
 	)
 	api.Handle("/dog/{dog_id}", dogHandler.Handle())
 	api.Handle("/dog", dogHandler.Handle())

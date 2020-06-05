@@ -79,7 +79,7 @@ func NewAuthorizeCreateDog() func(user models.User, dog *models.Dog) (bool, erro
 	}
 }
 
-// NewFetchDog returns a service function for creating a dog
+// NewCreateDog returns a service function for creating a dog
 func (f ServiceFactory) NewCreateDog(
 	authorize func(user models.User, dog *models.Dog) (bool, error),
 	create func(dog *models.Dog) (*models.Dog, error),
@@ -118,8 +118,76 @@ func (f ServiceFactory) NewCreateDog(
 		if err != nil {
 			queryError := apperrors.QueryError{
 				Err:       err,
-				Resource:  models.Dog{},
+				Resource:  dog,
 				Operation: apperrors.QueryCreate,
+			}
+			return nil, &queryError
+		}
+		return createdDog, nil
+	}
+}
+
+// NewAuthorizeUpdateDog authorizing updating a dog
+func NewAuthorizeUpdateDog() func(user models.User, dog *models.Dog) (bool, error) {
+	return func(user models.User, dog *models.Dog) (bool, error) {
+		if user.ID == dog.OwnerID {
+			return true, nil
+		}
+		return false, nil
+	}
+}
+
+// NewUpdateDog returns a service function for updating a dog
+func (f ServiceFactory) NewUpdateDog(
+	authorize func(user models.User, dog *models.Dog) (bool, error),
+	update func(dog *models.Dog) (*models.Dog, error),
+	fetch func(id uuid.UUID) (*models.Dog, error),
+) func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
+	return func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
+		logger, ok := appcontext.Logger(ctx)
+		if !ok {
+			logger = f.logger
+			logger.Error("failed to get logger from context in UpdateDog service")
+		}
+		user, ok := appcontext.User(ctx)
+		if !ok {
+			contextError := apperrors.ContextError{
+				Err:       errors.New("failed to get context"),
+				Resource:  apperrors.ContextResourceUser,
+				Operation: apperrors.ContextOperationGet,
+			}
+			return nil, &contextError
+		}
+		existingDog, err := fetch(dog.ID)
+		if err != nil {
+			queryError := apperrors.QueryError{
+				Err:       err,
+				Resource:  models.Dog{},
+				Operation: apperrors.QueryUpdate,
+			}
+			return nil, &queryError
+		}
+		ok, err = authorize(user, existingDog)
+		if err != nil {
+			logger.Error("failed to authorize updateDog", zap.String("user", user.ID))
+			return nil, err
+		}
+		if !ok {
+			unauthorizedError := apperrors.UnauthorizedError{
+				User:      user,
+				Operation: apperrors.QueryCreate,
+				Resource:  dog,
+				Err:       err,
+			}
+			return nil, &unauthorizedError
+		}
+		dog.OwnerID = user.ID
+		createdDog, err := update(dog)
+		if err != nil {
+			queryError := apperrors.QueryError{
+				Err:       err,
+				Resource:  dog,
+				Operation: apperrors.QueryUpdate,
 			}
 			return nil, &queryError
 		}

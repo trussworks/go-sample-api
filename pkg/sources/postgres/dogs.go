@@ -3,6 +3,7 @@ package postgres
 import (
 	"github.com/google/uuid"
 
+	"bin/bork/pkg/apperrors"
 	"bin/bork/pkg/models"
 )
 
@@ -19,6 +20,9 @@ func (s *Store) FetchDog(id uuid.UUID) (*models.Dog, error) {
 
 	err := s.db.Get(&dog, fetchDogSQL, id)
 	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return nil, &apperrors.ResourceNotFoundError{Resource: dog}
+		}
 		return nil, err
 	}
 	return &dog, nil

@@ -64,6 +64,16 @@ func (s HandlerTestSuite) TestWriteErrorResponse() {
 			},
 		},
 		{
+			&apperrors.QueryError{Err: &apperrors.ResourceNotFoundError{}},
+			http.StatusNotFound,
+			errorResponse{
+				Errors:  []errorItem{},
+				Code:    http.StatusNotFound,
+				Message: "Resource not found",
+				TraceID: traceID,
+			},
+		},
+		{
 			&apperrors.ContextError{},
 			http.StatusInternalServerError,
 			errorResponse{

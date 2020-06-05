@@ -13,8 +13,8 @@ type QueryOperation string
 const (
 	// QueryCreate is for failures when creating a resource
 	QueryCreate QueryOperation = "Create"
-	// QuerySave is for failures when saving
-	QuerySave QueryOperation = "Save"
+	// QueryUpdate is for failures when saving
+	QueryUpdate QueryOperation = "Update"
 	// QueryFetch is for failures when getting a resource
 	QueryFetch QueryOperation = "Fetch"
 )
@@ -194,4 +194,17 @@ func (e *BadRequestError) Error() string {
 // Unwrap provides the underlying error
 func (e *BadRequestError) Unwrap() error {
 	return e.Err
+}
+
+// ResourceNotFoundError is a typed error non-existent resources
+type ResourceNotFoundError struct {
+	Resource interface{}
+}
+
+// Error provides the error as a string
+func (e *ResourceNotFoundError) Error() string {
+	return fmt.Sprintf(
+		"Could not not find resource %T",
+		e.Resource,
+	)
 }
