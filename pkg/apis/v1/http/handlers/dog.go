@@ -115,13 +115,13 @@ func (h DogHandler) Handle() http.HandlerFunc {
 				return
 			}
 
-			businessCase, err := h.createDog(r.Context(), &dog)
+			responseDog, err := h.createDog(r.Context(), &dog)
 			if err != nil {
 				h.WriteErrorResponse(r.Context(), w, err)
 				return
 			}
 
-			responseBody, err := json.Marshal(businessCase)
+			responseBody, err := json.Marshal(responseDog)
 			if err != nil {
 				h.WriteErrorResponse(r.Context(), w, err)
 				return
