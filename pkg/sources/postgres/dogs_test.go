@@ -7,17 +7,15 @@ import (
 )
 
 func (s StoreTestSuite) TestFetchDog() {
-	const insertSQL = `
-		INSERT INTO dog (id, name, breed, birth_date) VALUES (:id, :name, :breed, :birth_date)
-	`
 	s.Run("fetches dog when exists", func() {
-		expectedDog := models.Dog{
+		insertDog := models.Dog{
 			ID:        uuid.New(),
 			Name:      "Chihua",
 			Breed:     models.Chihuahua,
 			BirthDate: s.clock.Now(),
+			OwnerID:   "Owner",
 		}
-		_, err := s.db.NamedExec(insertSQL, &expectedDog)
+		expectedDog, err := s.store.CreateDog(&insertDog)
 		s.NoError(err)
 
 		dog, err := s.store.FetchDog(expectedDog.ID)
@@ -27,6 +25,13 @@ func (s StoreTestSuite) TestFetchDog() {
 		s.Equal(expectedDog.Name, dog.Name)
 		s.Equal(expectedDog.Breed, dog.Breed)
 		s.True(dog.BirthDate.Equal(expectedDog.BirthDate))
+	})
+
+	s.Run("returns error when doesn't exist", func() {
+		dog, err := s.store.FetchDog(uuid.New())
+
+		s.Error(err)
+		s.Nil(dog)
 	})
 }
 
