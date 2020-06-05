@@ -19,7 +19,33 @@ func (s *Store) FetchDog(id uuid.UUID) (*models.Dog, error) {
 
 	err := s.db.Get(&dog, fetchDogSQL, id)
 	if err != nil {
-		return &models.Dog{}, err
+		return nil, err
 	}
 	return &dog, nil
+}
+
+// CreateDog creates a dog in the DB
+func (s *Store) CreateDog(dog *models.Dog) (*models.Dog, error) {
+	dog.ID = uuid.New()
+	const createDogSQL = `
+		INSERT INTO dog (
+		                 id,
+		                 name,
+		                 breed,
+		                 birth_date,
+		                 owner_id
+		)
+		VALUES (
+		        :id,
+		        :name,
+		        :breed,
+		        :birth_date,
+		        :owner_id
+		)`
+
+	_, err := s.db.NamedExec(createDogSQL, &dog)
+	if err != nil {
+		return nil, err
+	}
+	return dog, nil
 }

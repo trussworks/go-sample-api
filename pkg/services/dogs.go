@@ -113,7 +113,7 @@ func (f ServiceFactory) NewCreateDog(
 			}
 			return nil, &unauthorizedError
 		}
-		dog, err = create(dog)
+		createdDog, err := create(dog)
 		if err != nil {
 			queryError := apperrors.QueryError{
 				Err:       err,
@@ -122,6 +122,6 @@ func (f ServiceFactory) NewCreateDog(
 			}
 			return nil, &queryError
 		}
-		return dog, nil
+		return createdDog, nil
 	}
 }
