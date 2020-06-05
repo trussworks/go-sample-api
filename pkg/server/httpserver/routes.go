@@ -1,9 +1,12 @@
 package httpserver
 
 import (
+	"context"
+
 	"go.uber.org/zap"
 
 	"bin/bork/pkg/apis/v1/http/handlers"
+	"bin/bork/pkg/models"
 	"bin/bork/pkg/services"
 	"bin/bork/pkg/sources/postgres"
 )
@@ -43,7 +46,11 @@ func (s *Server) routes() {
 
 	dogHandler := handlers.NewDogHandler(
 		handlerBase,
-		serviceFactory.NewFetchDog(services.NewAuthorizeFetchDog(), store.FetchDog),
+		serviceFactory.NewFetchDog(
+			services.NewAuthorizeFetchDog(),
+			store.FetchDog,
+		),
+		func(ctx context.Context, dog *models.Dog) (*models.Dog, error) { return &models.Dog{}, nil },
 	)
 	api.Handle("/dog/{dog_id}", dogHandler.Handle())
 

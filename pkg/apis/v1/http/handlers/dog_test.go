@@ -26,6 +26,9 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 	fakeFetchDog := func(ctx context.Context, id uuid.UUID) (*models.Dog, error) {
 		return &dog, nil
 	}
+	fakeCreateDog := func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
+		return dog, nil
+	}
 
 	requestContext := context.Background()
 	requestContext = appcontext.WithUser(requestContext, models.User{ID: "McName"})
@@ -43,6 +46,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		DogHandler{
 			s.base,
 			fakeFetchDog,
+			fakeCreateDog,
 		}.Handle()(rr, req)
 
 		s.Equal(http.StatusOK, rr.Code)
@@ -66,9 +70,10 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		DogHandler{
 			s.base,
 			fakeFetchDog,
+			fakeCreateDog,
 		}.Handle()(rr, req)
 
-		s.Equal(http.StatusBadRequest, rr.Code)
+		s.Equal(http.StatusUnprocessableEntity, rr.Code)
 	})
 
 	s.Run("GET with bad ID returns 400", func() {
@@ -85,9 +90,10 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		DogHandler{
 			s.base,
 			fakeFetchDog,
+			fakeCreateDog,
 		}.Handle()(rr, req)
 
-		s.Equal(http.StatusBadRequest, rr.Code)
+		s.Equal(http.StatusUnprocessableEntity, rr.Code)
 	})
 
 	s.Run("GET with fetch failing returns 500", func() {
@@ -107,9 +113,73 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		DogHandler{
 			s.base,
 			failFetchDog,
+			fakeCreateDog,
 		}.Handle()(rr, req)
 
 		s.Equal(http.StatusInternalServerError, rr.Code)
+	})
+
+	s.Run("golden path POST returns 200", func() {
+		rr := httptest.NewRecorder()
+		dogBytes, err := json.Marshal(dog)
+		s.NoError(err)
+		req, err := http.NewRequestWithContext(
+			requestContext,
+			"POST",
+			"/dog",
+			bytes.NewBuffer(dogBytes),
+		)
+		s.NoError(err)
+
+		DogHandler{
+			s.base,
+			fakeFetchDog,
+			fakeCreateDog,
+		}.Handle()(rr, req)
+
+		s.Equal(http.StatusOK, rr.Code)
+		responseDog := &models.Dog{}
+		err = json.Unmarshal(rr.Body.Bytes(), responseDog)
+		s.NoError(err)
+		s.Equal(dog.ID, responseDog.ID)
+	})
+
+	s.Run("no body POST returns 400", func() {
+		rr := httptest.NewRecorder()
+		req, err := http.NewRequestWithContext(
+			requestContext,
+			"POST",
+			"/dog",
+			nil,
+		)
+		s.NoError(err)
+
+		DogHandler{
+			s.base,
+			fakeFetchDog,
+			fakeCreateDog,
+		}.Handle()(rr, req)
+
+		s.Equal(http.StatusBadRequest, rr.Code)
+	})
+
+	s.Run("bad body POST returns 400", func() {
+		rr := httptest.NewRecorder()
+		req, err := http.NewRequestWithContext(
+			requestContext,
+			"POST",
+			"/dog",
+			bytes.NewBufferString("{x: nil}"),
+		)
+		s.NoError(err)
+
+		DogHandler{
+			s.base,
+			fakeFetchDog,
+			fakeCreateDog,
+		}.Handle()(rr, req)
+
+		s.Equal(http.StatusBadRequest, rr.Code)
 	})
 
 	s.Run("unsupported method returns 405", func() {
@@ -126,6 +196,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		DogHandler{
 			s.base,
 			fakeFetchDog,
+			fakeCreateDog,
 		}.Handle()(rr, req)
 
 		s.Equal(http.StatusMethodNotAllowed, rr.Code)

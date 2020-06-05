@@ -14,19 +14,22 @@ import (
 )
 
 type fetchDog func(ctx context.Context, id uuid.UUID) (*models.Dog, error)
+type createDog func(ctx context.Context, dog *models.Dog) (*models.Dog, error)
 
 // NewDogHandler is a constructor for a DogHandler
-func NewDogHandler(base HandlerBase, fetch fetchDog) DogHandler {
+func NewDogHandler(base HandlerBase, fetch fetchDog, create createDog) DogHandler {
 	return DogHandler{
 		HandlerBase: base,
 		fetchDog:    fetch,
+		createDog:   create,
 	}
 }
 
 // DogHandler is the handler for CRUD operations on dog resources
 type DogHandler struct {
 	HandlerBase
-	fetchDog fetchDog
+	fetchDog  fetchDog
+	createDog createDog
 }
 
 // Handle handles a request for a dog
@@ -78,6 +81,52 @@ func (h DogHandler) Handle() http.HandlerFunc {
 			}
 
 			w.Header().Set("Content-Type", "application/json")
+			_, err = w.Write(responseBody)
+			if err != nil {
+				h.WriteErrorResponse(r.Context(), w, err)
+				return
+			}
+
+			return
+		case "POST":
+			if r.Body == nil {
+				h.WriteErrorResponse(
+					r.Context(),
+					w,
+					&apperrors.BadRequestError{
+						Err: errors.New("empty request not allowed"),
+					},
+				)
+				return
+			}
+			defer r.Body.Close()
+			decoder := json.NewDecoder(r.Body)
+			dog := models.Dog{}
+			err := decoder.Decode(&dog)
+
+			if err != nil {
+				h.WriteErrorResponse(
+					r.Context(),
+					w,
+					&apperrors.BadRequestError{
+						Err: errors.New("unable to decode dog"),
+					},
+				)
+				return
+			}
+
+			businessCase, err := h.createDog(r.Context(), &dog)
+			if err != nil {
+				h.WriteErrorResponse(r.Context(), w, err)
+				return
+			}
+
+			responseBody, err := json.Marshal(businessCase)
+			if err != nil {
+				h.WriteErrorResponse(r.Context(), w, err)
+				return
+			}
+
 			_, err = w.Write(responseBody)
 			if err != nil {
 				h.WriteErrorResponse(r.Context(), w, err)

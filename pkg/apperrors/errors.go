@@ -195,4 +195,3 @@ func (e *BadRequestError) Error() string {
 func (e *BadRequestError) Unwrap() error {
 	return e.Err
 }
-
