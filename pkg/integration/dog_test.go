@@ -9,6 +9,8 @@ import (
 	"path"
 	"time"
 
+	"github.com/google/uuid"
+
 	"bin/bork/pkg/models"
 )
 
@@ -32,13 +34,13 @@ func (s IntegrationTestSuite) TestDogEndpoints() {
 	})
 
 	postDog := models.Dog{}
+	owner := "Owner"
 	s.Run("POST will succeed", func() {
 		body, err := json.Marshal(map[string]string{
 			"name":      "Lola",
 			"breed":     "Chihuahua",
 			"birthDate": s.clock.Now().Format(time.RFC3339),
 		})
-		owner := "Owner"
 		s.NoError(err)
 		req, err := http.NewRequest(http.MethodPost, dogURL.String(), bytes.NewBuffer(body))
 		s.NoError(err)
@@ -99,5 +101,52 @@ func (s IntegrationTestSuite) TestDogEndpoints() {
 
 		s.NoError(err)
 		s.Equal(http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	s.Run("PUT will fail with no Authorization", func() {
+		req, err := http.NewRequest(http.MethodPut, dogURL.String(), bytes.NewBufferString(""))
+		s.NoError(err)
+		resp, err := client.Do(req)
+
+		s.NoError(err)
+		s.Equal(http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	s.Run("PUT will succeed", func() {
+		postDog.Name = "Lolita"
+		body, err := json.Marshal(postDog)
+		s.NoError(err)
+		req, err := http.NewRequest(http.MethodPut, dogURL.String(), bytes.NewBuffer(body))
+		s.NoError(err)
+		req.Header.Set("Authorization", owner)
+
+		resp, err := client.Do(req)
+
+		s.NoError(err)
+		s.Equal(http.StatusOK, resp.StatusCode)
+		actualBody, err := ioutil.ReadAll(resp.Body)
+		s.NoError(err)
+		putDog := models.Dog{}
+		err = json.Unmarshal(actualBody, &putDog)
+		s.NoError(err)
+		s.Equal("Lolita", putDog.Name)
+	})
+
+	s.Run("PUT will fail on unknown dog", func() {
+		body, err := json.Marshal(map[string]string{
+			"id":        uuid.New().String(),
+			"name":      "Lola",
+			"breed":     "Chihuahua",
+			"birthDate": s.clock.Now().Format(time.RFC3339),
+		})
+		s.NoError(err)
+		req, err := http.NewRequest(http.MethodPut, dogURL.String(), bytes.NewBuffer(body))
+		s.NoError(err)
+		req.Header.Set("Authorization", owner)
+
+		resp, err := client.Do(req)
+
+		s.NoError(err)
+		s.Equal(http.StatusNotFound, resp.StatusCode)
 	})
 }
