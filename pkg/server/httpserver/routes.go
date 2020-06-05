@@ -4,7 +4,6 @@ import (
 	"go.uber.org/zap"
 
 	"bin/bork/pkg/apis/v1/http/handlers"
-	"bin/bork/pkg/models"
 	"bin/bork/pkg/services"
 	"bin/bork/pkg/sources/postgres"
 )
@@ -50,7 +49,7 @@ func (s *Server) routes() {
 		),
 		serviceFactory.NewCreateDog(
 			services.NewAuthorizeCreateDog(),
-			func(dog *models.Dog) (*models.Dog, error) { return &models.Dog{}, nil },
+			store.CreateDog,
 		),
 	)
 	api.Handle("/dog/{dog_id}", dogHandler.Handle())
