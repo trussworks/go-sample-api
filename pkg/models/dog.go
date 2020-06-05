@@ -13,6 +13,9 @@ const (
 	Chihuahua DogBreed = "Chihuahua"
 )
 
+// Dogs is an array of Dog
+type Dogs []Dog
+
 // Dog is a model for dog fields
 type Dog struct {
 	ID        uuid.UUID `json:"id" db:"id"`
