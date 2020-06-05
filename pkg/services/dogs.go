@@ -113,6 +113,7 @@ func (f ServiceFactory) NewCreateDog(
 			}
 			return nil, &unauthorizedError
 		}
+		dog.OwnerID = user.ID
 		createdDog, err := create(dog)
 		if err != nil {
 			queryError := apperrors.QueryError{

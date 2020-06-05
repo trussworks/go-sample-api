@@ -53,6 +53,7 @@ func (s *Server) routes() {
 		),
 	)
 	api.Handle("/dog/{dog_id}", dogHandler.Handle())
+	api.Handle("/dog", dogHandler.Handle())
 
 	s.router.PathPrefix("/").Handler(handlers.NewCatchAllHandler(handlerBase).Handle())
 }
