@@ -11,8 +11,8 @@ import (
 type QueryOperation string
 
 const (
-	// QueryPost is for failures when creating a resource
-	QueryPost QueryOperation = "Create"
+	// QueryCreate is for failures when creating a resource
+	QueryCreate QueryOperation = "Create"
 	// QuerySave is for failures when saving
 	QuerySave QueryOperation = "Save"
 	// QueryFetch is for failures when getting a resource

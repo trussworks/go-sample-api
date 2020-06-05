@@ -11,6 +11,15 @@ import (
 	"bin/bork/pkg/models"
 )
 
+func (s ServicesTestSuite) NewDog() models.Dog {
+	return models.Dog{
+		ID:        uuid.New(),
+		Name:      "Lola",
+		Breed:     models.Chihuahua,
+		BirthDate: s.ServiceFactory.clock.Now(),
+	}
+}
+
 func (s ServicesTestSuite) TestNewAuthorizeFetchDog() {
 	authorize := NewAuthorizeFetchDog()
 	s.Run("matching IDs returns true", func() {
@@ -133,5 +142,101 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDog() {
 
 		s.IsType(&apperrors.QueryError{}, err)
 		s.Nil(dog)
+	})
+}
+
+func (s ServicesTestSuite) TestServiceFactory_NewCreateDog() {
+	create := func(dog *models.Dog) (*models.Dog, error) {
+		return dog, nil
+	}
+
+	authorize := func(user models.User, dog *models.Dog) (bool, error) {
+		return true, nil
+	}
+
+	s.Run("returns dog on golden path", func() {
+		dog := s.NewDog()
+		createDog := s.ServiceFactory.NewCreateDog(
+			authorize,
+			create,
+		)
+		ctx := context.Background()
+		ctx = appcontext.WithUser(ctx, models.User{})
+
+		actualDog, err := createDog(ctx, &dog)
+
+		s.NoError(err)
+		s.NotZero(actualDog.ID)
+		s.Equal(dog.Name, actualDog.Name)
+	})
+
+	s.Run("returns error with no user context", func() {
+		dog := s.NewDog()
+		createDog := s.ServiceFactory.NewCreateDog(
+			authorize,
+			create,
+		)
+		ctx := context.Background()
+
+		actualDog, err := createDog(ctx, &dog)
+
+		s.IsType(&apperrors.ContextError{}, err)
+		s.Nil(actualDog)
+	})
+
+	s.Run("returns error when not authorized", func() {
+		dog := s.NewDog()
+		noAuthorize := func(models.User, *models.Dog) (bool, error) {
+			return false, nil
+		}
+		createDog := s.ServiceFactory.NewCreateDog(
+			noAuthorize,
+			create,
+		)
+		ctx := context.Background()
+		ctx = appcontext.WithUser(ctx, models.User{})
+
+		actualDog, err := createDog(ctx, &dog)
+
+		s.IsType(&apperrors.UnauthorizedError{}, err)
+		s.Nil(actualDog)
+	})
+
+	s.Run("returns error when authorize returns error", func() {
+		dog := s.NewDog()
+		authErr := errors.New("failed to authorize")
+		failAuthorize := func(models.User, *models.Dog) (bool, error) {
+			return false, authErr
+		}
+		createDog := s.ServiceFactory.NewCreateDog(
+			failAuthorize,
+			create,
+		)
+		ctx := context.Background()
+		ctx = appcontext.WithUser(ctx, models.User{})
+
+		actualDog, err := createDog(ctx, &dog)
+
+		s.Equal(authErr, err)
+		s.Nil(actualDog)
+	})
+
+	s.Run("returns error when create returns error", func() {
+		createdDog := s.NewDog()
+		fetchErr := errors.New("failed to create")
+		failCreate := func(dog *models.Dog) (*models.Dog, error) {
+			return &createdDog, fetchErr
+		}
+		createDog := s.ServiceFactory.NewCreateDog(
+			authorize,
+			failCreate,
+		)
+		ctx := context.Background()
+		ctx = appcontext.WithUser(ctx, models.User{})
+
+		actualDog, err := createDog(ctx, &createdDog)
+
+		s.IsType(&apperrors.QueryError{}, err)
+		s.Nil(actualDog)
 	})
 }
