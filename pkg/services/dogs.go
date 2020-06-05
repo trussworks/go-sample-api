@@ -72,10 +72,7 @@ func (f ServiceFactory) NewFetchDog(
 // NewAuthorizeCreateDog authorizing creating a dog
 func NewAuthorizeCreateDog() func(user models.User, dog *models.Dog) (bool, error) {
 	return func(user models.User, dog *models.Dog) (bool, error) {
-		if user.ID != "" {
-			return true, nil
-		}
-		return false, nil
+		return user.ID != "", nil
 	}
 }
 
@@ -192,5 +189,59 @@ func (f ServiceFactory) NewUpdateDog(
 			return nil, &queryError
 		}
 		return createdDog, nil
+	}
+}
+
+// NewAuthorizeFetchDogs authorizes fetching dogs
+func NewAuthorizeFetchDogs() func(user models.User) (bool, error) {
+	return func(user models.User) (bool, error) {
+		return user.ID != "", nil
+	}
+}
+
+// NewFetchDogs returns a service function for fetching dogs
+func (f ServiceFactory) NewFetchDogs(
+	authorize func(user models.User) (bool, error),
+	fetch func() (*models.Dogs, error),
+) func(ctx context.Context) (*models.Dogs, error) {
+	return func(ctx context.Context) (*models.Dogs, error) {
+		logger, ok := appcontext.Logger(ctx)
+		if !ok {
+			logger = f.logger
+			logger.Error("failed to get logger from context in FetchDog service")
+		}
+		user, ok := appcontext.User(ctx)
+		if !ok {
+			contextError := apperrors.ContextError{
+				Err:       errors.New("failed to get context"),
+				Resource:  apperrors.ContextResourceUser,
+				Operation: apperrors.ContextOperationGet,
+			}
+			return nil, &contextError
+		}
+		ok, err := authorize(user)
+		if err != nil {
+			logger.Error("failed to authorize fetchDogs", zap.String("user", user.ID))
+			return nil, err
+		}
+		if !ok {
+			unauthorizedError := apperrors.UnauthorizedError{
+				User:      user,
+				Operation: apperrors.QueryFetch,
+				Resource:  models.Dogs{},
+				Err:       err,
+			}
+			return nil, &unauthorizedError
+		}
+		dogs, err := fetch()
+		if err != nil {
+			queryError := apperrors.QueryError{
+				Err:       err,
+				Resource:  models.Dogs{},
+				Operation: apperrors.QueryFetch,
+			}
+			return nil, &queryError
+		}
+		return dogs, nil
 	}
 }

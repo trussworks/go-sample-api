@@ -50,14 +50,14 @@ func (s ServicesTestSuite) TestNewAuthorizeFetchDog() {
 }
 
 func (s ServicesTestSuite) TestServiceFactory_NewFetchDog() {
-	fetchedDog := models.Dog{
+	expectedDog := models.Dog{
 		ID:        uuid.New(),
 		Name:      "Lola",
 		Breed:     models.Chihuahua,
 		BirthDate: s.ServiceFactory.clock.Now(),
 	}
 	fetch := func(uuid uuid.UUID) (*models.Dog, error) {
-		return &fetchedDog, nil
+		return &expectedDog, nil
 	}
 
 	authorize := func(user models.User, dog *models.Dog) (bool, error) {
@@ -75,7 +75,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDog() {
 		dog, err := fetchDog(ctx, uuid.New())
 
 		s.NoError(err)
-		s.Equal(&fetchedDog, dog)
+		s.Equal(&expectedDog, dog)
 	})
 
 	s.Run("returns error with no user context", func() {
@@ -129,7 +129,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDog() {
 	s.Run("returns error when fetch returns error", func() {
 		fetchErr := errors.New("failed to fetch")
 		failFetch := func(id uuid.UUID) (*models.Dog, error) {
-			return &fetchedDog, fetchErr
+			return &expectedDog, fetchErr
 		}
 		fetchDog := s.ServiceFactory.NewFetchDog(
 			authorize,
@@ -416,5 +416,124 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 
 		s.IsType(&apperrors.QueryError{}, err)
 		s.Nil(actualDog)
+	})
+}
+
+func (s ServicesTestSuite) TestNewAuthorizeFetchDogs() {
+	authorize := NewAuthorizeFetchDogs()
+	s.Run("any ID returns true", func() {
+		user := models.User{
+			ID: "owner",
+		}
+
+		ok, _ := authorize(user)
+
+		s.True(ok)
+	})
+
+	s.Run("empty ID returns false", func() {
+		user := models.User{
+			ID: "",
+		}
+
+		ok, _ := authorize(user)
+
+		s.False(ok)
+	})
+}
+
+func (s ServicesTestSuite) TestServiceFactory_NewFetchDogs() {
+	expectedDog := models.Dog{
+		ID:        uuid.New(),
+		Name:      "Lola",
+		Breed:     models.Chihuahua,
+		BirthDate: s.ServiceFactory.clock.Now(),
+	}
+	fetch := func() (*models.Dogs, error) {
+		return &models.Dogs{expectedDog}, nil
+	}
+
+	authorize := func(user models.User) (bool, error) {
+		return true, nil
+	}
+
+	s.Run("returns dogs on golden path", func() {
+		fetchDogs := s.ServiceFactory.NewFetchDogs(
+			authorize,
+			fetch,
+		)
+		ctx := context.Background()
+		ctx = appcontext.WithUser(ctx, models.User{})
+
+		actualDogs, err := fetchDogs(ctx)
+
+		s.NoError(err)
+		s.Equal(models.Dogs{expectedDog}, *actualDogs)
+	})
+
+	s.Run("returns error with no user context", func() {
+		fetchDogs := s.ServiceFactory.NewFetchDogs(
+			authorize,
+			fetch,
+		)
+		ctx := context.Background()
+
+		dog, err := fetchDogs(ctx)
+
+		s.IsType(&apperrors.ContextError{}, err)
+		s.Nil(dog)
+	})
+
+	s.Run("returns error when not authorized", func() {
+		noAuthorize := func(models.User) (bool, error) {
+			return false, nil
+		}
+		fetchDogs := s.ServiceFactory.NewFetchDogs(
+			noAuthorize,
+			fetch,
+		)
+		ctx := context.Background()
+		ctx = appcontext.WithUser(ctx, models.User{})
+
+		dog, err := fetchDogs(ctx)
+
+		s.IsType(&apperrors.UnauthorizedError{}, err)
+		s.Nil(dog)
+	})
+
+	s.Run("returns error when authorize returns error", func() {
+		authErr := errors.New("failed to authorize")
+		failAuthorize := func(models.User) (bool, error) {
+			return false, authErr
+		}
+		fetchDogs := s.ServiceFactory.NewFetchDogs(
+			failAuthorize,
+			fetch,
+		)
+		ctx := context.Background()
+		ctx = appcontext.WithUser(ctx, models.User{})
+
+		dog, err := fetchDogs(ctx)
+
+		s.Equal(authErr, err)
+		s.Nil(dog)
+	})
+
+	s.Run("returns error when fetch returns error", func() {
+		fetchErr := errors.New("failed to fetch")
+		failFetch := func() (*models.Dogs, error) {
+			return &models.Dogs{expectedDog}, fetchErr
+		}
+		fetchDogs := s.ServiceFactory.NewFetchDogs(
+			authorize,
+			failFetch,
+		)
+		ctx := context.Background()
+		ctx = appcontext.WithUser(ctx, models.User{})
+
+		dog, err := fetchDogs(ctx)
+
+		s.IsType(&apperrors.QueryError{}, err)
+		s.Nil(dog)
 	})
 }
