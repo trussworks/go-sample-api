@@ -15,13 +15,15 @@ import (
 
 type fetchDog func(ctx context.Context, id uuid.UUID) (*models.Dog, error)
 type createDog func(ctx context.Context, dog *models.Dog) (*models.Dog, error)
+type updateDog func(ctx context.Context, dog *models.Dog) (*models.Dog, error)
 
 // NewDogHandler is a constructor for a DogHandler
-func NewDogHandler(base HandlerBase, fetch fetchDog, create createDog) DogHandler {
+func NewDogHandler(base HandlerBase, fetch fetchDog, create createDog, update updateDog) DogHandler {
 	return DogHandler{
 		HandlerBase: base,
 		fetchDog:    fetch,
 		createDog:   create,
+		updateDog:   update,
 	}
 }
 
@@ -30,13 +32,14 @@ type DogHandler struct {
 	HandlerBase
 	fetchDog  fetchDog
 	createDog createDog
+	updateDog updateDog
 }
 
 // Handle handles a request for a dog
 func (h DogHandler) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
-		case "GET":
+		case http.MethodGet:
 			idString := mux.Vars(r)["dog_id"]
 			if idString == "" {
 				validationErr := apperrors.NewValidationError(
@@ -88,7 +91,7 @@ func (h DogHandler) Handle() http.HandlerFunc {
 			}
 
 			return
-		case "POST":
+		case http.MethodPost:
 			if r.Body == nil {
 				h.WriteErrorResponse(
 					r.Context(),
@@ -116,6 +119,52 @@ func (h DogHandler) Handle() http.HandlerFunc {
 			}
 
 			responseDog, err := h.createDog(r.Context(), &dog)
+			if err != nil {
+				h.WriteErrorResponse(r.Context(), w, err)
+				return
+			}
+
+			responseBody, err := json.Marshal(responseDog)
+			if err != nil {
+				h.WriteErrorResponse(r.Context(), w, err)
+				return
+			}
+
+			_, err = w.Write(responseBody)
+			if err != nil {
+				h.WriteErrorResponse(r.Context(), w, err)
+				return
+			}
+
+			return
+		case http.MethodPut:
+			if r.Body == nil {
+				h.WriteErrorResponse(
+					r.Context(),
+					w,
+					&apperrors.BadRequestError{
+						Err: errors.New("empty request not allowed"),
+					},
+				)
+				return
+			}
+			defer r.Body.Close()
+			decoder := json.NewDecoder(r.Body)
+			dog := models.Dog{}
+			err := decoder.Decode(&dog)
+
+			if err != nil {
+				h.WriteErrorResponse(
+					r.Context(),
+					w,
+					&apperrors.BadRequestError{
+						Err: errors.New("unable to decode dog"),
+					},
+				)
+				return
+			}
+
+			responseDog, err := h.updateDog(r.Context(), &dog)
 			if err != nil {
 				h.WriteErrorResponse(r.Context(), w, err)
 				return
