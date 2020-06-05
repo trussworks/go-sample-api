@@ -53,3 +53,28 @@ func (s *Store) CreateDog(dog *models.Dog) (*models.Dog, error) {
 	}
 	return dog, nil
 }
+
+// UpdateDog creates a dog in the DB
+func (s *Store) UpdateDog(dog *models.Dog) (*models.Dog, error) {
+	const updateDogSQL = `
+		UPDATE dog 
+		SET
+		    name = :name,
+		    breed = :breed,
+		    birth_date = :birth_date
+		WHERE dog.id = :id
+		`
+
+	result, err := s.db.NamedExec(updateDogSQL, &dog)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+	if rows == 0 {
+		return nil, &apperrors.ResourceNotFoundError{Resource: dog}
+	}
+	return dog, nil
+}

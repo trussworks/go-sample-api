@@ -4,7 +4,6 @@ import (
 	"go.uber.org/zap"
 
 	"bin/bork/pkg/apis/v1/http/handlers"
-	"bin/bork/pkg/models"
 	"bin/bork/pkg/services"
 	"bin/bork/pkg/sources/postgres"
 )
@@ -54,7 +53,7 @@ func (s *Server) routes() {
 		),
 		serviceFactory.NewUpdateDog(
 			services.NewAuthorizeUpdateDog(),
-			func(dog *models.Dog) (*models.Dog, error) { return nil, nil },
+			store.UpdateDog,
 			store.FetchDog,
 		),
 	)

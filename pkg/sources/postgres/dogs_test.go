@@ -91,3 +91,39 @@ func (s StoreTestSuite) TestCreateDog() {
 		})
 	}
 }
+
+func (s StoreTestSuite) TestUpdateDog() {
+	s.Run("returns dog on success", func() {
+		dog := models.Dog{
+			ID:        uuid.UUID{},
+			Name:      "Lola",
+			Breed:     models.Chihuahua,
+			BirthDate: s.clock.Now(),
+			OwnerID:   "Owner",
+		}
+		createdDog, err := s.store.CreateDog(&dog)
+		s.NoError(err)
+		createdDog.Name = "Lolita"
+
+		actualDog, err := s.store.UpdateDog(&dog)
+
+		s.NoError(err)
+		s.Equal("Lolita", actualDog.Name)
+	})
+
+	s.Run("fails if dog doesn't exist", func() {
+		dog := models.Dog{
+			ID:        uuid.New(),
+			Name:      "Chihua",
+			Breed:     models.Chihuahua,
+			BirthDate: s.clock.Now(),
+			OwnerID:   "Owner",
+		}
+
+		actualDog, err := s.store.UpdateDog(&dog)
+
+		s.Error(err)
+		s.IsType(&apperrors.ResourceNotFoundError{}, err)
+		s.Nil(actualDog)
+	})
+}
