@@ -1,10 +1,14 @@
 package httpserver
 
 import (
+	"time"
+
 	"go.uber.org/zap"
 
 	"bin/bork/pkg/apis/v1/http/handlers"
 	"bin/bork/pkg/services"
+	"bin/bork/pkg/sources/cache"
+	"bin/bork/pkg/sources/memory"
 	"bin/bork/pkg/sources/postgres"
 )
 
@@ -59,6 +63,22 @@ func (s *Server) routes() {
 	)
 	api.Handle("/dog/{dog_id}", dogHandler.Handle())
 	api.Handle("/dog", dogHandler.Handle())
+
+	// fabricated example of a cache store
+	// to show composable store patterns
+	cacheConfig := cache.StoreConfig{
+		TTL:           time.Minute,
+		DogCacheStore: memory.NewStore(),
+		DogReadStore:  store,
+	}
+	dogsHandler := handlers.NewDogsHandler(
+		handlerBase,
+		serviceFactory.NewFetchDogs(
+			services.NewAuthorizeFetchDogs(),
+			cache.NewStore(cacheConfig).FetchDogs,
+		),
+	)
+	api.Handle("/dogs", dogsHandler.Handle())
 
 	s.router.PathPrefix("/").Handler(handlers.NewCatchAllHandler(handlerBase).Handle())
 }
