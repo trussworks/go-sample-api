@@ -149,4 +149,33 @@ func (s IntegrationTestSuite) TestDogEndpoints() {
 		s.NoError(err)
 		s.Equal(http.StatusNotFound, resp.StatusCode)
 	})
+
+	s.Run("GET all will fetch the dog saved", func() {
+		dogsURL, err := url.Parse(apiURL.String())
+		s.NoError(err, "failed to parse URL")
+		dogsURL.Path = path.Join(dogsURL.Path, "/dogs")
+
+		req, err := http.NewRequest(http.MethodGet, dogsURL.String(), nil)
+		s.NoError(err)
+		req.Header.Set("Authorization", postDog.OwnerID)
+
+		resp, err := client.Do(req)
+
+		s.NoError(err)
+		defer resp.Body.Close()
+
+		s.Equal(http.StatusOK, resp.StatusCode)
+		actualBody, err := ioutil.ReadAll(resp.Body)
+		s.NoError(err)
+		getDogs := models.Dogs{}
+		err = json.Unmarshal(actualBody, &getDogs)
+		s.NoError(err)
+		postDogCount := 0
+		for _, d := range getDogs {
+			if d.ID == postDog.ID {
+				postDogCount++
+			}
+		}
+		s.Equal(postDogCount, 1)
+	})
 }
