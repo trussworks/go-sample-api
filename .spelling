@@ -89,3 +89,5 @@ unmarshal
 non-composable
 bork
 cmd
+composable
+GraphQL

@@ -1,12 +1,120 @@
-# Bork Go Application
+# Go Sample API Application
 
 The bork application
 is a sample application
-to demonstrate Go API patterns.
+to demonstrate Go API patterns
+and provide a lightweight template
+for a new application.
+
+Rather than attempting to create
+a monolithic CRUD/MVP framework based app,
+this application centers a set of "services"
+which contain business logic for the application.
+API and data layers are then orchestrated
+to serve and retrieve data defined by the services.
+
+*Note*, this application is mostly a guide
+for developing applications with a particular set of patterns.
+Adopting it requires some orchestrating
+based on your business context
+(ex. plugging in an auth solution).
+It attempts to illustrate concepts
+that have been repeated in multiple Truss environments,
+while implying space for domain specific changes.
+Some basic uses of this repo are:
+
+1. Forking some boilerplate code commonly written at application bootstrap.
+2. Looking for Go [API patterns](#patterns) to employ.
+3. Adding sample API or data sources.
+   Want to show what a GraphQL server looks like
+   as opposed to standard library handlers?
+   [APIs](./pkg/apis) would be a great spot.
+   Maybe there's a new sql adapter--
+   take a look at [Data Sources](./pkg/sources).
+4. Testing out a new pattern on a minimal dependency application.
+   While a production application may have compiled layers or history
+   and third party dependencies,
+   this API mostly requires Go and Postgres
+   and has minimal "business" constraints.
+
+## Patterns
+
+The main patterns of the API are:
+
+* *Service package for business logic*.
+  Business logic is scoped to a single package
+  using single functions per instruction of work.
+  Since application development is
+  led by client user value,
+  the goal is to focus on adding value
+  to this layer of the code.
+  Feature oriented work
+  will tend to be mirrored in this layer.
+* *Composable API and data source layers.*
+  The API and data source layers
+  are treated as tools to serve the logic of the application.
+  Rather than overloading those layers with logic
+  (such as monolithic handlers),
+  they serve small, scoped sets of responsibilities.
+  Separating these packages
+  allows the tooling of the application to progress
+  without affecting the business logic (ex. migrating from REST to GraphQL).
+  A goal  is to spend less time in these layers
+  and automate out of as much of the boilerplate
+  (ex. generating code)
+  to allow for focus on the service layers.
+* *Cross package domain models.*
+  Few resources are shared across layers of the application
+  and these resources are almost entirely scoped
+  to method-less data structures
+  and Go basic types or standard library definitions.
+  These include:
+  [models](./pkg/models),
+  [errors](./pkg/apperrors),
+  and [context](./pkg/appcontext).
+  Reducing the function of these types
+  heavily reduces coupling of the application's components.
+* *Internally defined, minimal, dependency/parameter interfaces.*
+  When defining dependencies for inter-layer communication,
+  interfaces are defined internally to the *calling package*.
+  These interfaces are scoped to fewest methods necessary
+  and often defined as typed functions.
+  These implementations of interfaces
+  are set up in a main [server package](./pkg/server/httpserver)
+  and explicitly defined.
+  Elsewhere in the application,
+  functions are almost exclusively referred to
+  as interfaces or typed functions.
+  Paired with minimal domain models,
+  this reduces layer coupling
+  and allows implementation packages
+  to implicitly satisfy caller requirements.
+
+## Libraries
+
+The application also consists of a few dependable libraries
+used in Truss codebases,
+such as:
+
+* [Testify](https://github.com/stretchr/testify)
+  for testing suites and sub-test structuring.
+* [sqlx](https://github.com/jmoiron/sqlx)
+  for marshaling sql into Go structs.
+* [mux](https://github.com/gorilla/mux)
+  mostly used for simple sub-routing.
+* [viper](https://github.com/spf13/viper)
+  for app configuration.
+* [clock] It's a clock interface and mock clock.
+  Mostly used for `time.Now()` mocking in tests.
+
+For more information on each package,
+see [codebase layout](#codebase-layout).
 
 ## Codebase Layout
 
-### [cmd](./cmd)
+### [Command Line Utilities](./cmd)
+
+### [Application Packages](./pkg)
 
 ## Application Setup
 
