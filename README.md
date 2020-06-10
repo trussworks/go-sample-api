@@ -90,6 +90,10 @@ The main patterns of the API are:
   and allows implementation packages
   to implicitly satisfy caller requirements.
 
+Note that many of these patterns pull from
+[SOLID](https://en.wikipedia.org/wiki/SOLID) principles
+and attempt to implement them in line with Go's language design.
+
 ## Libraries
 
 The application also consists of a few dependable libraries
