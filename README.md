@@ -13,7 +13,7 @@ which contain business logic for the application.
 API and data layers are then orchestrated
 to serve and retrieve data defined by the services.
 
-*Note*, this application is mostly a guide
+_Note_, this application is mostly a guide
 for developing applications with a particular set of patterns.
 Adopting it requires some orchestrating
 based on your business context
@@ -41,7 +41,7 @@ Some basic uses of this repo are:
 
 The main patterns of the API are:
 
-* *Service package for business logic*.
+* _Service package for business logic_.
   Business logic is scoped to a single package
   using single functions per instruction of work.
   Since application development is
@@ -50,7 +50,7 @@ The main patterns of the API are:
   to this layer of the code.
   Feature oriented work
   will tend to be mirrored in this layer.
-* *Composable API and data source layers.*
+* _Composable API and data source layers._
   The API and data source layers
   are treated as tools to serve the logic of the application.
   Rather than overloading those layers with logic
@@ -63,7 +63,7 @@ The main patterns of the API are:
   and automate out of as much of the boilerplate
   (ex. generating code)
   to allow for focus on the service layers.
-* *Cross package domain models.*
+* _Cross package domain models._
   Few resources are shared across layers of the application
   and these resources are almost entirely scoped
   to method-less data structures
@@ -74,9 +74,9 @@ The main patterns of the API are:
   and [context](./pkg/appcontext).
   Reducing the function of these types
   heavily reduces coupling of the application's components.
-* *Internally defined, minimal, dependency/parameter interfaces.*
+* _Internally defined, minimal, dependency/parameter interfaces._
   When defining dependencies for inter-layer communication,
-  interfaces are defined internally to the *calling package*.
+  interfaces are defined internally to the _calling package_.
   These interfaces are scoped to fewest methods necessary
   and often defined as typed functions.
   These implementations of interfaces
@@ -119,7 +119,7 @@ see [codebase layout](#codebase-layout).
 ### [Command Line Utilities](./cmd)
 
 `cmd` is the entry-point
-for *running* the application from the *command-line*.
+for _running_ the application from the _command line_.
 It's lightweight and holds very few responsibilities.
 Namely:
 
@@ -135,7 +135,7 @@ on the application.
 ### [Application Packages](./pkg)
 
 `pkg` holds the necessary code
-for *serving* the application.
+for _serving_ the application.
 This is distinct from `cmd`
 in that is should be executable from multiple environments
 including, `cmd`, integration testing or other Go code.

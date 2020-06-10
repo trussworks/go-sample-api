@@ -109,10 +109,10 @@ should be left to layer based unit tests.
 for passing data across multiple layers of the codebase.
 They are one of two returns values
 (coinciding with [errors](#errorsapperrors)).
-They are *used* in different ways
+They are _used_ in different ways
 (ex. marshaling to JSON, retrieving from databases,
 performing business functions against),
-but do not provide function *within* themselves.
+but do not provide function _within_ themselves.
 The simple provide structured data
 for manipulation by other layers.
 
