@@ -114,7 +114,31 @@ see [codebase layout](#codebase-layout).
 
 ### [Command Line Utilities](./cmd)
 
+`cmd` is the entry-point
+for *running* the application from the *command-line*.
+It's lightweight and holds very few responsibilities.
+Namely:
+
+1. Read the command line arguments.
+2. Initialize environment variables.
+3. Execute the application.
+
+In a production application,
+the may also hold some helper scripts
+for running maintenance or testing tasks
+on the application.
+
 ### [Application Packages](./pkg)
+
+`pkg` holds the necessary code
+for *serving* the application.
+This is distinct from `cmd`
+in that is should be executable from multiple environments
+including, `cmd`, integration testing or other Go code.
+
+In relation to `cmd`, it takes `viper.Viper` as it's only argument
+(in the server package),
+and has no awareness of the command line or executing environment.
 
 ## Application Setup
 
