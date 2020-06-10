@@ -108,7 +108,7 @@ such as:
   mostly used for simple sub-routing.
 * [viper](https://github.com/spf13/viper)
   for app configuration.
-* [clock] It's a clock interface and mock clock.
+* [clock](https://github.com/facebookgo/clock/) It's a clock interface and mock clock.
   Mostly used for `time.Now()` mocking in tests.
 
 For more information on each package,
