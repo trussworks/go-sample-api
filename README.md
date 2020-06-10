@@ -110,6 +110,8 @@ such as:
   for app configuration.
 * [clock](https://github.com/facebookgo/clock/) It's a clock interface and mock clock.
   Mostly used for `time.Now()` mocking in tests.
+* [zap](https://github.com/uber-go/zap)
+  A structured logger with nice syntax for adding fields.
 
 For more information on each package,
 see [codebase layout](#codebase-layout).
