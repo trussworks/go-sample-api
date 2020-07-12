@@ -36,6 +36,7 @@ func (s HandlerTestSuite) TestDogsHandler_Handle() {
 			bytes.NewBufferString(""),
 		)
 		s.NoError(err)
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 
 		DogsHandler{
 			s.base,
@@ -62,6 +63,7 @@ func (s HandlerTestSuite) TestDogsHandler_Handle() {
 			bytes.NewBufferString(""),
 		)
 		s.NoError(err)
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 
 		DogsHandler{
 			s.base,
@@ -80,6 +82,7 @@ func (s HandlerTestSuite) TestDogsHandler_Handle() {
 			bytes.NewBufferString(""),
 		)
 		s.NoError(err)
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 
 		DogsHandler{
 			s.base,
