@@ -93,3 +93,13 @@ func RequestLogFields(ctx context.Context) ([]zap.Field, bool) {
 
 	return requestLog.fields, ok
 }
+
+// RequestErrorInfo returns three variables:
+//     did_error bool: true if LogRequestError was called
+//     error_message string: the message logged with the call to LogRequestError
+//     ok bool: wether this data was sucessfully extracted from the context
+func RequestErrorInfo(ctx context.Context) (bool, string, bool) {
+	requestLog, ok := ctx.Value(requestLogKey).(*requestLog)
+
+	return requestLog.error, requestLog.errorMessage, ok
+}

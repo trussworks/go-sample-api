@@ -62,7 +62,17 @@ func loggerMiddleware(logger *zap.Logger, next http.Handler) http.Handler {
 
 		allfields := append(fields, requestFields...)
 
-		logger.Info("Request Complete", allfields...)
+		didError, errorMessage, ok := appcontext.RequestErrorInfo(ctx)
+		if !ok {
+			logger.Error("Error info not found on this request")
+		}
+
+		if didError {
+			allfields = append(allfields, zap.String("error_message", errorMessage))
+			logger.Error("Request Complete", allfields...)
+		} else {
+			logger.Info("Request Complete", allfields...)
+		}
 	})
 }
 
