@@ -1,6 +1,8 @@
 package cache
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 
 	"bin/bork/pkg/models"
@@ -10,7 +12,7 @@ type fakeDogReadStore struct {
 	Dogs models.Dogs
 }
 
-func (s fakeDogReadStore) FetchDogs() (*models.Dogs, error) {
+func (s fakeDogReadStore) FetchDogs(context.Context) (*models.Dogs, error) {
 	return &s.Dogs, nil
 }
 
@@ -26,9 +28,10 @@ func (s StoreTestSuite) TestFetchDogs() {
 	},
 	}
 	s.store.dogStore.readStore = readStore
+	ctx := context.Background()
 
 	s.Run("first fetch gets read store dogs", func() {
-		actualDogs, err := s.store.FetchDogs()
+		actualDogs, err := s.store.FetchDogs(ctx)
 
 		s.NoError(err)
 		s.Equal(readStore.Dogs, *actualDogs)
@@ -48,7 +51,7 @@ func (s StoreTestSuite) TestFetchDogs() {
 		})
 		s.store.dogStore.readStore = readStore
 
-		actualDogs, err := s.store.FetchDogs()
+		actualDogs, err := s.store.FetchDogs(ctx)
 
 		s.NoError(err)
 		s.Equal(oldDogs, *actualDogs)
@@ -58,7 +61,7 @@ func (s StoreTestSuite) TestFetchDogs() {
 	s.Run("over TTL gets read store dogs", func() {
 		s.clock.Add(s.store.ttl)
 
-		actualDogs, err := s.store.FetchDogs()
+		actualDogs, err := s.store.FetchDogs(ctx)
 
 		s.NoError(err)
 		s.Equal(readStore.Dogs, *actualDogs)

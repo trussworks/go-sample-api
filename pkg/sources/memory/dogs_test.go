@@ -1,6 +1,8 @@
 package memory
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 
 	"bin/bork/pkg/models"
@@ -17,7 +19,7 @@ func (s StoreTestSuite) TestFetchDogs() {
 		},
 	}
 
-	dogs, err := s.store.FetchDogs()
+	dogs, err := s.store.FetchDogs(context.Background())
 
 	s.NoError(err)
 	s.Equal(s.store.dogs, dogs)
@@ -34,7 +36,7 @@ func (s StoreTestSuite) TestSaveDogs() {
 		},
 	}
 
-	err := s.store.SaveDogs(expectedDogs)
+	err := s.store.SaveDogs(context.Background(), expectedDogs)
 
 	s.NoError(err)
 	s.Equal(expectedDogs, s.store.dogs)

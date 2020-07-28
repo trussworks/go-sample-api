@@ -52,11 +52,16 @@ It's most commonly used for injecting request/response information
 from the calling client.
 A common example is a `User` model for accessing role/authorization information.
 
-A general rule is that information should be shared
-outside of context when possible.
-`context.Context` is not type-safe
-and there is no guarantee
-the caller will receive  data from a getter.
+As a general rule, `context.Context` should be passed down through the
+layers of your program, as this is the conventional Go way to address
+"cross cutting concerns", e.g. cancellation, logging, distributed
+tracing, or other types of instrumentation (which in other languages
+might be addressed via Thread Locals or similar constructs).
+
+However, for any given function, concrete 1st order
+dependencies for the operation of that function should be called out
+as an explicit parameter, rather than buried in a call to the
+not-type-safe `context.Value`.
 
 ## [Errors](./apperrors)
 
