@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 
 	"bin/bork/pkg/apperrors"
@@ -8,7 +10,7 @@ import (
 )
 
 // FetchDog queries the DB for a dog
-func (s *Store) FetchDog(id uuid.UUID) (*models.Dog, error) {
+func (s *Store) FetchDog(ctx context.Context, id uuid.UUID) (*models.Dog, error) {
 	dog := models.Dog{}
 	const fetchDogSQL = `
 		SELECT
@@ -29,7 +31,7 @@ func (s *Store) FetchDog(id uuid.UUID) (*models.Dog, error) {
 }
 
 // CreateDog creates a dog in the DB
-func (s *Store) CreateDog(dog *models.Dog) (*models.Dog, error) {
+func (s *Store) CreateDog(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
 	dog.ID = uuid.New()
 	const createDogSQL = `
 		INSERT INTO dog (
@@ -55,7 +57,7 @@ func (s *Store) CreateDog(dog *models.Dog) (*models.Dog, error) {
 }
 
 // UpdateDog creates a dog in the DB
-func (s *Store) UpdateDog(dog *models.Dog) (*models.Dog, error) {
+func (s *Store) UpdateDog(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
 	const updateDogSQL = `
 		UPDATE dog 
 		SET
@@ -80,7 +82,7 @@ func (s *Store) UpdateDog(dog *models.Dog) (*models.Dog, error) {
 }
 
 // FetchDogs queries the DB for dogs
-func (s *Store) FetchDogs() (*models.Dogs, error) {
+func (s *Store) FetchDogs(ctx context.Context) (*models.Dogs, error) {
 	dog := models.Dogs{}
 	const fetchDogsSQL = `
 		SELECT

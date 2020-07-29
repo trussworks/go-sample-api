@@ -1,18 +1,19 @@
 package cache
 
 import (
+	"context"
 	"time"
 
 	"bin/bork/pkg/models"
 )
 
 type DogCacheStore interface {
-	FetchDogs() (*models.Dogs, error)
-	SaveDogs(*models.Dogs) error
+	FetchDogs(context.Context) (*models.Dogs, error)
+	SaveDogs(context.Context, *models.Dogs) error
 }
 
 type DogReadStore interface {
-	FetchDogs() (*models.Dogs, error)
+	FetchDogs(ctx context.Context) (*models.Dogs, error)
 }
 
 type dogStore struct {
@@ -21,15 +22,15 @@ type dogStore struct {
 	cacheStore DogCacheStore
 }
 
-func (s *Store) FetchDogs() (*models.Dogs, error) {
+func (s *Store) FetchDogs(ctx context.Context) (*models.Dogs, error) {
 	if s.clock.Now().Before(s.dogStore.updatedAt.Add(s.ttl)) {
-		return s.dogStore.cacheStore.FetchDogs()
+		return s.dogStore.cacheStore.FetchDogs(ctx)
 	}
-	dogs, err := s.dogStore.readStore.FetchDogs()
+	dogs, err := s.dogStore.readStore.FetchDogs(ctx)
 	if err != nil {
 		return nil, err
 	}
-	err = s.dogStore.cacheStore.SaveDogs(dogs)
+	err = s.dogStore.cacheStore.SaveDogs(ctx, dogs)
 	if err != nil {
 		return dogs, err
 	}

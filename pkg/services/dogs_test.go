@@ -56,7 +56,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDog() {
 		Breed:     models.Chihuahua,
 		BirthDate: s.ServiceFactory.clock.Now(),
 	}
-	fetch := func(uuid uuid.UUID) (*models.Dog, error) {
+	fetch := func(ctx context.Context, uuid uuid.UUID) (*models.Dog, error) {
 		return &expectedDog, nil
 	}
 
@@ -128,7 +128,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDog() {
 
 	s.Run("returns error when fetch returns error", func() {
 		fetchErr := errors.New("failed to fetch")
-		failFetch := func(id uuid.UUID) (*models.Dog, error) {
+		failFetch := func(ctx context.Context, id uuid.UUID) (*models.Dog, error) {
 			return &expectedDog, fetchErr
 		}
 		fetchDog := s.ServiceFactory.NewFetchDog(
@@ -171,7 +171,7 @@ func (s ServicesTestSuite) TestNewAuthorizeCreateDog() {
 }
 
 func (s ServicesTestSuite) TestServiceFactory_NewCreateDog() {
-	create := func(dog *models.Dog) (*models.Dog, error) {
+	create := func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
 		return dog, nil
 	}
 
@@ -249,7 +249,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewCreateDog() {
 	s.Run("returns error when create returns error", func() {
 		createdDog := s.NewDog()
 		fetchErr := errors.New("failed to create")
-		failCreate := func(dog *models.Dog) (*models.Dog, error) {
+		failCreate := func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
 			return &createdDog, fetchErr
 		}
 		createDog := s.ServiceFactory.NewCreateDog(
@@ -296,11 +296,11 @@ func (s ServicesTestSuite) TestNewAuthorizeUpdateDog() {
 }
 
 func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
-	update := func(dog *models.Dog) (*models.Dog, error) {
+	update := func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
 		return dog, nil
 	}
 
-	fetch := func(uuid uuid.UUID) (*models.Dog, error) {
+	fetch := func(ctx context.Context, uuid uuid.UUID) (*models.Dog, error) {
 		return &models.Dog{}, nil
 	}
 
@@ -381,7 +381,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 
 	s.Run("returns error when fetch fail", func() {
 		dog := s.NewDog()
-		failFetch := func(id uuid.UUID) (*models.Dog, error) {
+		failFetch := func(ctx context.Context, id uuid.UUID) (*models.Dog, error) {
 			return nil, errors.New("failed to fetch")
 		}
 		updateDog := s.ServiceFactory.NewUpdateDog(
@@ -401,7 +401,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 	s.Run("returns error when update returns error", func() {
 		updatedDog := s.NewDog()
 		fetchErr := errors.New("failed to update")
-		failUpdate := func(dog *models.Dog) (*models.Dog, error) {
+		failUpdate := func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
 			return &updatedDog, fetchErr
 		}
 		updateDog := s.ServiceFactory.NewUpdateDog(
@@ -449,7 +449,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDogs() {
 		Breed:     models.Chihuahua,
 		BirthDate: s.ServiceFactory.clock.Now(),
 	}
-	fetch := func() (*models.Dogs, error) {
+	fetch := func(ctx context.Context) (*models.Dogs, error) {
 		return &models.Dogs{expectedDog}, nil
 	}
 
@@ -521,7 +521,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDogs() {
 
 	s.Run("returns error when fetch returns error", func() {
 		fetchErr := errors.New("failed to fetch")
-		failFetch := func() (*models.Dogs, error) {
+		failFetch := func(ctx context.Context) (*models.Dogs, error) {
 			return &models.Dogs{expectedDog}, fetchErr
 		}
 		fetchDogs := s.ServiceFactory.NewFetchDogs(

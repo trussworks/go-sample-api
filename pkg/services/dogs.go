@@ -25,7 +25,7 @@ func NewAuthorizeFetchDog() func(user models.User, dog *models.Dog) (bool, error
 // NewFetchDog returns a service function for fetching a dog
 func (f ServiceFactory) NewFetchDog(
 	authorize func(user models.User, dog *models.Dog) (bool, error),
-	fetch func(id uuid.UUID) (*models.Dog, error),
+	fetch func(ctx context.Context, id uuid.UUID) (*models.Dog, error),
 ) func(ctx context.Context, id uuid.UUID) (*models.Dog, error) {
 	return func(ctx context.Context, id uuid.UUID) (*models.Dog, error) {
 		logger, ok := appcontext.Logger(ctx)
@@ -33,7 +33,7 @@ func (f ServiceFactory) NewFetchDog(
 			logger = f.logger
 			logger.Error("failed to get logger from context in FetchDog service")
 		}
-		dog, err := fetch(id)
+		dog, err := fetch(ctx, id)
 		if err != nil {
 			queryError := apperrors.QueryError{
 				Err:       err,
@@ -79,7 +79,7 @@ func NewAuthorizeCreateDog() func(user models.User, dog *models.Dog) (bool, erro
 // NewCreateDog returns a service function for creating a dog
 func (f ServiceFactory) NewCreateDog(
 	authorize func(user models.User, dog *models.Dog) (bool, error),
-	create func(dog *models.Dog) (*models.Dog, error),
+	create func(ctx context.Context, dog *models.Dog) (*models.Dog, error),
 ) func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
 	return func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
 		logger, ok := appcontext.Logger(ctx)
@@ -111,7 +111,7 @@ func (f ServiceFactory) NewCreateDog(
 			return nil, &unauthorizedError
 		}
 		dog.OwnerID = user.ID
-		createdDog, err := create(dog)
+		createdDog, err := create(ctx, dog)
 		if err != nil {
 			queryError := apperrors.QueryError{
 				Err:       err,
@@ -137,8 +137,8 @@ func NewAuthorizeUpdateDog() func(user models.User, dog *models.Dog) (bool, erro
 // NewUpdateDog returns a service function for updating a dog
 func (f ServiceFactory) NewUpdateDog(
 	authorize func(user models.User, dog *models.Dog) (bool, error),
-	update func(dog *models.Dog) (*models.Dog, error),
-	fetch func(id uuid.UUID) (*models.Dog, error),
+	update func(ctx context.Context, dog *models.Dog) (*models.Dog, error),
+	fetch func(ctx context.Context, id uuid.UUID) (*models.Dog, error),
 ) func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
 	return func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
 		logger, ok := appcontext.Logger(ctx)
@@ -155,7 +155,7 @@ func (f ServiceFactory) NewUpdateDog(
 			}
 			return nil, &contextError
 		}
-		existingDog, err := fetch(dog.ID)
+		existingDog, err := fetch(ctx, dog.ID)
 		if err != nil {
 			queryError := apperrors.QueryError{
 				Err:       err,
@@ -179,7 +179,7 @@ func (f ServiceFactory) NewUpdateDog(
 			return nil, &unauthorizedError
 		}
 		dog.OwnerID = user.ID
-		createdDog, err := update(dog)
+		createdDog, err := update(ctx, dog)
 		if err != nil {
 			queryError := apperrors.QueryError{
 				Err:       err,
@@ -202,7 +202,7 @@ func NewAuthorizeFetchDogs() func(user models.User) (bool, error) {
 // NewFetchDogs returns a service function for fetching dogs
 func (f ServiceFactory) NewFetchDogs(
 	authorize func(user models.User) (bool, error),
-	fetch func() (*models.Dogs, error),
+	fetch func(ctx context.Context) (*models.Dogs, error),
 ) func(ctx context.Context) (*models.Dogs, error) {
 	return func(ctx context.Context) (*models.Dogs, error) {
 		logger, ok := appcontext.Logger(ctx)
@@ -233,7 +233,7 @@ func (f ServiceFactory) NewFetchDogs(
 			}
 			return nil, &unauthorizedError
 		}
-		dogs, err := fetch()
+		dogs, err := fetch(ctx)
 		if err != nil {
 			queryError := apperrors.QueryError{
 				Err:       err,

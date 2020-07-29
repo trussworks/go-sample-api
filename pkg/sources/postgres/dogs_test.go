@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 
 	"bin/bork/pkg/apperrors"
@@ -8,6 +10,8 @@ import (
 )
 
 func (s StoreTestSuite) TestFetchDog() {
+	ctx := context.Background()
+
 	s.Run("fetches dog when exists", func() {
 		insertDog := models.Dog{
 			ID:        uuid.New(),
@@ -16,10 +20,10 @@ func (s StoreTestSuite) TestFetchDog() {
 			BirthDate: s.clock.Now(),
 			OwnerID:   "Owner",
 		}
-		expectedDog, err := s.store.CreateDog(&insertDog)
+		expectedDog, err := s.store.CreateDog(ctx, &insertDog)
 		s.NoError(err)
 
-		dog, err := s.store.FetchDog(expectedDog.ID)
+		dog, err := s.store.FetchDog(ctx, expectedDog.ID)
 
 		s.NoError(err)
 		s.Equal(expectedDog.ID, dog.ID)
@@ -29,7 +33,7 @@ func (s StoreTestSuite) TestFetchDog() {
 	})
 
 	s.Run("returns error when doesn't exist", func() {
-		dog, err := s.store.FetchDog(uuid.New())
+		dog, err := s.store.FetchDog(ctx, uuid.New())
 
 		s.Error(err)
 		s.IsType(&apperrors.ResourceNotFoundError{}, err)
@@ -38,6 +42,8 @@ func (s StoreTestSuite) TestFetchDog() {
 }
 
 func (s StoreTestSuite) TestCreateDog() {
+	ctx := context.Background()
+
 	s.Run("returns dog on success", func() {
 		dog := models.Dog{
 			ID:        uuid.UUID{},
@@ -47,7 +53,7 @@ func (s StoreTestSuite) TestCreateDog() {
 			OwnerID:   "Owner",
 		}
 
-		actualDog, err := s.store.CreateDog(&dog)
+		actualDog, err := s.store.CreateDog(ctx, &dog)
 
 		s.NoError(err)
 		s.NotZero(actualDog.ID)
@@ -83,7 +89,7 @@ func (s StoreTestSuite) TestCreateDog() {
 	}
 	for _, v := range conflictTests {
 		s.Run("returns errors conflict failure", func() {
-			actualDog, err := s.store.CreateDog(&v.dog)
+			actualDog, err := s.store.CreateDog(ctx, &v.dog)
 
 			s.Error(err)
 			s.Equal(v.message, err.Error())
@@ -93,6 +99,8 @@ func (s StoreTestSuite) TestCreateDog() {
 }
 
 func (s StoreTestSuite) TestUpdateDog() {
+	ctx := context.Background()
+
 	s.Run("returns dog on success", func() {
 		dog := models.Dog{
 			ID:        uuid.UUID{},
@@ -101,11 +109,11 @@ func (s StoreTestSuite) TestUpdateDog() {
 			BirthDate: s.clock.Now(),
 			OwnerID:   "Owner",
 		}
-		createdDog, err := s.store.CreateDog(&dog)
+		createdDog, err := s.store.CreateDog(ctx, &dog)
 		s.NoError(err)
 		createdDog.Name = "Lolita"
 
-		actualDog, err := s.store.UpdateDog(&dog)
+		actualDog, err := s.store.UpdateDog(ctx, &dog)
 
 		s.NoError(err)
 		s.Equal("Lolita", actualDog.Name)
@@ -120,7 +128,7 @@ func (s StoreTestSuite) TestUpdateDog() {
 			OwnerID:   "Owner",
 		}
 
-		actualDog, err := s.store.UpdateDog(&dog)
+		actualDog, err := s.store.UpdateDog(ctx, &dog)
 
 		s.Error(err)
 		s.IsType(&apperrors.ResourceNotFoundError{}, err)
@@ -129,6 +137,8 @@ func (s StoreTestSuite) TestUpdateDog() {
 }
 
 func (s StoreTestSuite) TestFetchDogs() {
+	ctx := context.Background()
+
 	s.Run("fetches dogs", func() {
 		insertDog := models.Dog{
 			ID:        uuid.New(),
@@ -137,10 +147,10 @@ func (s StoreTestSuite) TestFetchDogs() {
 			BirthDate: s.clock.Now(),
 			OwnerID:   "Owner",
 		}
-		expectedDog, err := s.store.CreateDog(&insertDog)
+		expectedDog, err := s.store.CreateDog(ctx, &insertDog)
 		s.NoError(err)
 
-		dogs, err := s.store.FetchDogs()
+		dogs, err := s.store.FetchDogs(ctx)
 
 		s.NoError(err)
 		s.Len(*dogs, 1)
