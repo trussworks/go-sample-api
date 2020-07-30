@@ -10,6 +10,7 @@ import (
 	"bin/bork/pkg/appcontext"
 	"bin/bork/pkg/apperrors"
 	"bin/bork/pkg/models"
+	"bin/bork/pkg/sources"
 )
 
 // NewAuthorizeFetchDog authorizes fetching a dog
@@ -202,7 +203,7 @@ func NewAuthorizeFetchDogs() func(user models.User) (bool, error) {
 // NewFetchDogs returns a service function for fetching dogs
 func (f ServiceFactory) NewFetchDogs(
 	authorize func(user models.User) (bool, error),
-	fetch func(ctx context.Context) (*models.Dogs, error),
+	fetch sources.DogLister,
 ) func(ctx context.Context) (*models.Dogs, error) {
 	return func(ctx context.Context) (*models.Dogs, error) {
 		logger, ok := appcontext.Logger(ctx)
@@ -233,7 +234,7 @@ func (f ServiceFactory) NewFetchDogs(
 			}
 			return nil, &unauthorizedError
 		}
-		dogs, err := fetch(ctx)
+		dogs, err := fetch.ListDogs(ctx)
 		if err != nil {
 			queryError := apperrors.QueryError{
 				Err:       err,

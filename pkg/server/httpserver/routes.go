@@ -7,6 +7,7 @@ import (
 
 	"bin/bork/pkg/apis/v1/http/handlers"
 	"bin/bork/pkg/services"
+	"bin/bork/pkg/sources"
 	"bin/bork/pkg/sources/cache"
 	"bin/bork/pkg/sources/memory"
 	"bin/bork/pkg/sources/postgres"
@@ -75,7 +76,7 @@ func (s *Server) routes() {
 		handlerBase,
 		serviceFactory.NewFetchDogs(
 			services.NewAuthorizeFetchDogs(),
-			cache.NewStore(cacheConfig).FetchDogs,
+			sources.DogListerFunc(cache.NewStore(cacheConfig).FetchDogs),
 		),
 	)
 	api.Handle("/dogs", dogsHandler.Handle())

@@ -9,6 +9,7 @@ import (
 	"bin/bork/pkg/appcontext"
 	"bin/bork/pkg/apperrors"
 	"bin/bork/pkg/models"
+	"bin/bork/pkg/sources"
 )
 
 func (s ServicesTestSuite) NewDog() models.Dog {
@@ -460,7 +461,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDogs() {
 	s.Run("returns dogs on golden path", func() {
 		fetchDogs := s.ServiceFactory.NewFetchDogs(
 			authorize,
-			fetch,
+			sources.DogListerFunc(fetch),
 		)
 		ctx := context.Background()
 		ctx = appcontext.WithUser(ctx, models.User{})
@@ -474,7 +475,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDogs() {
 	s.Run("returns error with no user context", func() {
 		fetchDogs := s.ServiceFactory.NewFetchDogs(
 			authorize,
-			fetch,
+			sources.DogListerFunc(fetch),
 		)
 		ctx := context.Background()
 
@@ -490,7 +491,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDogs() {
 		}
 		fetchDogs := s.ServiceFactory.NewFetchDogs(
 			noAuthorize,
-			fetch,
+			sources.DogListerFunc(fetch),
 		)
 		ctx := context.Background()
 		ctx = appcontext.WithUser(ctx, models.User{})
@@ -508,7 +509,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDogs() {
 		}
 		fetchDogs := s.ServiceFactory.NewFetchDogs(
 			failAuthorize,
-			fetch,
+			sources.DogListerFunc(fetch),
 		)
 		ctx := context.Background()
 		ctx = appcontext.WithUser(ctx, models.User{})
@@ -521,12 +522,11 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDogs() {
 
 	s.Run("returns error when fetch returns error", func() {
 		fetchErr := errors.New("failed to fetch")
-		failFetch := func(ctx context.Context) (*models.Dogs, error) {
-			return &models.Dogs{expectedDog}, fetchErr
-		}
 		fetchDogs := s.ServiceFactory.NewFetchDogs(
 			authorize,
-			failFetch,
+			sources.DogListerFunc(func(ctx context.Context) (*models.Dogs, error) {
+				return &models.Dogs{expectedDog}, fetchErr
+			}),
 		)
 		ctx := context.Background()
 		ctx = appcontext.WithUser(ctx, models.User{})

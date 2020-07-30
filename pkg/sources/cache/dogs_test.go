@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 
 	"bin/bork/pkg/models"
+	"bin/bork/pkg/sources"
 )
 
 type fakeDogReadStore struct {
@@ -66,5 +67,10 @@ func (s StoreTestSuite) TestFetchDogs() {
 		s.NoError(err)
 		s.Equal(readStore.Dogs, *actualDogs)
 		s.True(s.store.dogStore.updatedAt.Equal(s.clock.Now()))
+	})
+
+	s.Run("ensure interface adapter signature", func() {
+		// This won't compile otherwise
+		var _ sources.DogLister = sources.DogListerFunc(readStore.FetchDogs)
 	})
 }
