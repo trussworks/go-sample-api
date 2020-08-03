@@ -44,6 +44,7 @@ jobs:
       - restore_cache:
           keys:
             - go-mod-sources-v1-{{ checksum "go.sum" }}
+      - run: wget -qO- https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/6.5.3/flyway-commandline-6.5.3-linux-x64.tar.gz | tar xvz && sudo ln -s `pwd`/flyway-6.5.3/flyway /usr/local/bin 
       - run:
           name: Waiting for Postgres to be ready
           command: |
@@ -54,7 +55,6 @@ jobs:
               sleep 1
             done
             echo Failed waiting for Postgres && exit 1
-      - run: wget -qO- https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/6.5.3/flyway-commandline-6.5.3-linux-x64.tar.gz | tar xvz && sudo ln -s `pwd`/flyway-6.5.3/flyway /usr/local/bin 
       - run: flyway migrate
       - run: go test ./pkg/...
       - save_cache:
