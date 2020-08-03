@@ -1,0 +1,69 @@
+version: 2.1
+
+references:
+  circleci-docker-primary: &circleci-docker-primary trussworks/circleci-docker-primary:385c300cc218b910b6fd2da8041fe848001cecf4
+  postgres: &postgres circleci/postgres:12.3-ram
+
+jobs:
+  validate:
+    docker:
+      - image: *circleci-docker-primary
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - pre-commit-dot-cache-v1-{{ checksum ".pre-commit-config.yaml" }}
+      - run:
+          name: Run pre-commit tests
+          command: pre-commit run --all-files
+      - save_cache:
+          key: pre-commit-dot-cache-v1-{{ checksum ".pre-commit-config.yaml" }}
+          paths:
+            - ~/.cache/pre-commit
+  test:
+    docker:
+      - image: *circleci-docker-primary
+        environment:
+        - PGHOST: 127.0.0.1
+        - PGDATABASE: bork-local
+        - PGPORT: 5432
+        - PGUSER: postgres
+        - PGPASS: postgres
+        - APP_ENV: test
+        - API_PROTOCOL: http
+        - API_HOST: localhost
+        - API_PORT: 8080
+        - PGSSLMODE: disable
+      - image: *postgres
+        environment:
+        - POSTGRES_DB: bork-local
+        - POSTGRES_PASSWORD: postgres
+
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-sources-v1-{{ checksum "go.sum" }}
+      - run:
+          name: Waiting for Postgres to be ready
+          command: |
+            for i in `seq 1 10`;
+            do
+              nc -z localhost 5432 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for Postgres && exit 1
+      - run: wget -qO- https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/6.5.3/flyway-commandline-6.5.3-linux-x64.tar.gz | tar xvz && sudo ln -s `pwd`/flyway-6.5.3/flyway /usr/local/bin 
+      - run: flyway migrate
+      - run: go test ./pkg/...
+      - save_cache:
+          key: go-mod-sources-v1-{{ checksum "go.sum" }}
+          paths:
+            - /go/pkg/mod
+workflows:
+  version: 2.1
+  test:
+    jobs:
+      - validate
+      - test
