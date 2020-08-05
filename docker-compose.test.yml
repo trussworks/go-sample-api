@@ -1,0 +1,49 @@
+version: '3.4'
+
+services:
+  bork_test:
+    container_name: bork_test
+    build:
+      context: .
+      target: test
+    environment:
+      APP_ENV: test
+      API_PROTOCOL: http
+      API_HOST: 0.0.0.0
+      API_PORT: 8080
+      PGUSER: postgres
+      PGPASS: postgres
+      PGHOST: db_test
+      PGDATABASE: bork_test
+      PGPORT: 5432
+      PGSSLMODE: disable
+    depends_on:
+      - db_test
+      - flyway
+
+  db_test:
+    ports: [ "5432:5432" ]
+    image: postgres:12.2
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bork_test
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  flyway:
+    image: flyway/flyway:6.5
+    depends_on:
+      - db_test
+    environment:
+      PGUSER: postgres
+      PGPASS: postgres
+      PGHOST: db_test
+      PGDATABASE: bork_test
+      PGPORT: 5432
+      PGSSLMODE: disable
+    volumes:
+      - ./flyway.conf:/flyway/conf/flyway.conf
+      - ./migrations:/flyway/migrations
+    command: -connectRetries=60 migrate
