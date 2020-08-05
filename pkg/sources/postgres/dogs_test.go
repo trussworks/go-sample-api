@@ -2,42 +2,46 @@ package postgres
 
 import (
 	"context"
+	"testing"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 
 	"bin/bork/pkg/apperrors"
 	"bin/bork/pkg/models"
 )
 
-func (s StoreTestSuite) TestFetchDog() {
-	ctx := context.Background()
+func TestFetchDog(t *testing.T) {
+	store, clock, ctx, refresh := setup(t)
 
-	s.Run("fetches dog when exists", func() {
+	t.Run("fetches dog when exists", func(t *testing.T) {
+		refresh(t)
 		insertDog := models.Dog{
 			ID:        uuid.New(),
 			Name:      "Chihua",
 			Breed:     models.Chihuahua,
-			BirthDate: s.clock.Now(),
+			BirthDate: clock.Now(),
 			OwnerID:   "Owner",
 		}
-		expectedDog, err := s.store.CreateDog(ctx, &insertDog)
-		s.NoError(err)
+		expectedDog, err := store.CreateDog(ctx, &insertDog)
+		assert.NoError(t, err)
 
-		dog, err := s.store.FetchDog(ctx, expectedDog.ID)
+		dog, err := store.FetchDog(ctx, expectedDog.ID)
 
-		s.NoError(err)
-		s.Equal(expectedDog.ID, dog.ID)
-		s.Equal(expectedDog.Name, dog.Name)
-		s.Equal(expectedDog.Breed, dog.Breed)
-		s.True(dog.BirthDate.Equal(expectedDog.BirthDate))
+		assert.NoError(t, err)
+		assert.Equal(t, expectedDog.ID, dog.ID)
+		assert.Equal(t, expectedDog.Name, dog.Name)
+		assert.Equal(t, expectedDog.Breed, dog.Breed)
+		assert.True(t, dog.BirthDate.Equal(expectedDog.BirthDate))
 	})
 
-	s.Run("returns error when doesn't exist", func() {
-		dog, err := s.store.FetchDog(ctx, uuid.New())
+	t.Run("returns error when doesn't exist", func(t *testing.T) {
+		refresh(t)
+		dog, err := store.FetchDog(ctx, uuid.New())
 
-		s.Error(err)
-		s.IsType(&apperrors.ResourceNotFoundError{}, err)
-		s.Nil(dog)
+		assert.Error(t, err)
+		assert.IsType(t, &apperrors.ResourceNotFoundError{}, err)
+		assert.Nil(t, dog)
 	})
 }
 

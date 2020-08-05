@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -50,4 +51,32 @@ func TestStoreTestSuite(t *testing.T) {
 
 func (s StoreTestSuite) SetupTest() {
 	s.store.db.MustExec("TRUNCATE dog")
+}
+
+func setup(t *testing.T) (*Store, *clock.Mock, context.Context, func(t *testing.T)) {
+	t.Helper()
+
+	config := viper.New()
+	config.AutomaticEnv()
+
+	dbConfig := DBConfig{
+		Host:     config.GetString(appconfig.DBHostConfigKey),
+		Port:     config.GetString(appconfig.DBPortConfigKey),
+		Database: config.GetString(appconfig.DBNameConfigKey),
+		Username: config.GetString(appconfig.DBUsernameConfigKey),
+		Password: config.GetString(appconfig.DBPasswordConfigKey),
+		SSLMode:  config.GetString(appconfig.DBSSLModeConfigKey),
+	}
+	store, err := NewStore(dbConfig)
+	if err != nil {
+		fmt.Printf("Failed to get new database: %v", err)
+		t.Fail()
+	}
+
+	fn := func(t *testing.T) {
+		t.Helper()
+		store.db.MustExec("TRUNCATE dog")
+	}
+
+	return store, clock.NewMock(), context.Background(), fn
 }
