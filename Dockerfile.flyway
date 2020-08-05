@@ -1,0 +1,4 @@
+FROM flyway/flyway:6.5
+
+COPY flyway.conf /flyway/conf/flyway.conf
+COPY migrations /flyway/migrations

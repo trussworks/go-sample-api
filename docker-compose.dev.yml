@@ -40,7 +40,9 @@ services:
       - /var/lib/postgresql/data
 
   flyway:
-    image: flyway/flyway:6.5
+    build:
+      context: .
+      dockerfile: Dockerfile.flyway
     depends_on:
       - db
     environment:

@@ -33,7 +33,9 @@ services:
       - /var/lib/postgresql/data
 
   flyway:
-    image: flyway/flyway:6.5
+    build:
+      context: .
+      dockerfile: Dockerfile.flyway
     depends_on:
       - db_test
     environment:
@@ -43,7 +45,4 @@ services:
       PGDATABASE: bork_test
       PGPORT: 5432
       PGSSLMODE: disable
-    volumes:
-      - ./flyway.conf:/flyway/conf/flyway.conf
-      - ./migrations:/flyway/migrations
     command: -connectRetries=60 migrate
