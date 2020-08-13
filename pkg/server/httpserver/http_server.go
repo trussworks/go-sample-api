@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/facebookgo/clock"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
@@ -17,12 +18,18 @@ import (
 // from appconfig
 type Server struct {
 	db        *sqlx.DB
+	clock     clock.Clock
 	router    *mux.Router
 	url       url.URL
 	logger    *zap.Logger
 	datetime  string
 	version   string
 	timestamp string
+}
+
+// accessor to allow using the server established db
+func (s *Server) Db() *sqlx.DB {
+	return s.db
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -41,6 +48,7 @@ func NewServer(appConfig *appconfig.AppConfig) (*Server, error) {
 
 	s := &Server{
 		db:        db,
+		clock:     appConfig.Clock,
 		router:    r,
 		url:       NewURL(appConfig),
 		logger:    appConfig.Logger,

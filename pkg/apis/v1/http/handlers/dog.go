@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -58,7 +59,7 @@ func (h DogHandler) Handle() http.HandlerFunc {
 			id, err := uuid.Parse(idString)
 			if err != nil {
 				validationErr := apperrors.NewValidationError(
-					errors.New("GET dog params failed validation"),
+					fmt.Errorf("GET dog params failed validation: %s", err),
 					models.Dog{},
 					idString,
 				)
@@ -112,7 +113,7 @@ func (h DogHandler) Handle() http.HandlerFunc {
 					r.Context(),
 					w,
 					&apperrors.BadRequestError{
-						Err: errors.New("unable to decode dog"),
+						Err: fmt.Errorf("unable to decode dog: %s", err),
 					},
 				)
 				return
@@ -130,6 +131,7 @@ func (h DogHandler) Handle() http.HandlerFunc {
 				return
 			}
 
+			w.Header().Set("Content-Type", "application/json")
 			_, err = w.Write(responseBody)
 			if err != nil {
 				h.WriteErrorResponse(r.Context(), w, err)

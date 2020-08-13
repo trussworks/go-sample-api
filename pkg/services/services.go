@@ -6,9 +6,9 @@ import (
 )
 
 // NewServiceFactory is a constructor a new ServiceFactory
-func NewServiceFactory(logger *zap.Logger) ServiceFactory {
+func NewServiceFactory(logger *zap.Logger, clock clock.Clock) ServiceFactory {
 	return ServiceFactory{
-		clock:  clock.New(),
+		clock:  clock,
 		logger: logger,
 	}
 }

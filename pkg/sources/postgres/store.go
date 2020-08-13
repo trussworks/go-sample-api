@@ -32,7 +32,7 @@ func BuildDataSourceName(appConfig *appconfig.AppConfig) string {
 }
 
 func NewDB(appConfig *appconfig.AppConfig) (*sqlx.DB, error) {
-	db, err := sqlx.Connect("postgres", BuildDataSourceName(appConfig))
+	db, err := sqlx.Connect(appConfig.DBDriver, BuildDataSourceName(appConfig))
 	if err != nil {
 		return nil, err
 	}

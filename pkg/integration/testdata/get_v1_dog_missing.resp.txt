@@ -1,0 +1,9 @@
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{
+  "code": 404,
+  "errors": [],
+  "message": "Resource not found",
+  "traceID": "12113c7a-ae13-4eae-b969-5e38b12533b4"
+}

@@ -3,6 +3,7 @@ package appconfig
 import (
 	"fmt"
 
+	"github.com/facebookgo/clock"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
@@ -128,25 +129,31 @@ const DBPasswordConfigKey = "PGPASS"
 // DBSSLModeConfigKey is the Postgres SSL mode config key
 const DBSSLModeConfigKey = "PGSSLMODE"
 
+// DBDriverConfigKey allows overriding the default postgres driver in tests
+const DBDriverConfigKey = "DBDRIVER"
+
 // AppConfig is open struct so tests can create as necessary
 type AppConfig struct {
 	Env Environment
 
 	Logger *zap.Logger
 
-	APIProtocol string
-	APIHost string
-	APIPort string
+	Clock      clock.Clock
 
-	DBHost string
-	DBPort string
-	DBName string
+	APIProtocol string
+	APIHost     string
+	APIPort     string
+
+	DBHost     string
+	DBPort     string
+	DBName     string
 	DBUsername string
 	DBPassword string
-	DBSSLMode string
+	DBSSLMode  string
+	DBDriver   string
 
-	AppVersion string
-	AppDatetime string
+	AppVersion   string
+	AppDatetime  string
 	AppTimestamp string
 }
 
@@ -200,19 +207,22 @@ func NewAppConfig(viperConfig *viper.Viper) (AppConfig, error) {
 
 		Logger: zapLogger,
 
-		APIProtocol: viperConfig.GetString(APIProtocolKey),
-		APIHost: getRequiredConfig(viperConfig, APIHostKey, zapLogger),
-		APIPort: viperConfig.GetString(APIPortKey),
+		Clock:      clock.New(),
 
-		DBHost: getRequiredConfig(viperConfig, DBHostConfigKey, zapLogger),
-		DBPort: getRequiredConfig(viperConfig, DBPortConfigKey, zapLogger),
-		DBName: getRequiredConfig(viperConfig, DBNameConfigKey, zapLogger),
+		APIProtocol: viperConfig.GetString(APIProtocolKey),
+		APIHost:     getRequiredConfig(viperConfig, APIHostKey, zapLogger),
+		APIPort:     viperConfig.GetString(APIPortKey),
+
+		DBDriver:   getDefaultConfigString(viperConfig, DBDriverConfigKey, "postgres"),
+		DBHost:     getRequiredConfig(viperConfig, DBHostConfigKey, zapLogger),
+		DBPort:     getRequiredConfig(viperConfig, DBPortConfigKey, zapLogger),
+		DBName:     getRequiredConfig(viperConfig, DBNameConfigKey, zapLogger),
 		DBUsername: getRequiredConfig(viperConfig, DBUsernameConfigKey, zapLogger),
 		DBPassword: getRequiredConfig(viperConfig, DBPasswordConfigKey, zapLogger),
-		DBSSLMode: getRequiredConfig(viperConfig, DBSSLModeConfigKey, zapLogger),
+		DBSSLMode:  getRequiredConfig(viperConfig, DBSSLModeConfigKey, zapLogger),
 
-		AppVersion: viperConfig.GetString("APPLICATION_VERSION"),
-		AppDatetime: viperConfig.GetString("APPLICATION_DATETIME"),
+		AppVersion:   viperConfig.GetString("APPLICATION_VERSION"),
+		AppDatetime:  viperConfig.GetString("APPLICATION_DATETIME"),
 		AppTimestamp: viperConfig.GetString("APPLICATION_TS"),
 	}
 

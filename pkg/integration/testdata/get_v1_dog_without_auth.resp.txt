@@ -1,0 +1,9 @@
+HTTP/1.1 401 Unauthorized
+Content-Type: application/json
+
+{
+  "code": 401,
+  "errors": [],
+  "message": "Unauthorized",
+  "traceID": "71f3e70b-ff60-4361-b93b-4c9aeb1d93ef"
+}

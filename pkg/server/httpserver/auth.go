@@ -18,9 +18,10 @@ func (m FakeAuthorizeMiddlewareFactory) authorizeMiddleware(next http.Handler) h
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			m.base.WriteErrorResponse(r.Context(), w, &apperrors.UnauthorizedError{})
+		} else {
+			ctx := appcontext.WithUser(r.Context(), models.User{ID: authHeader})
+			next.ServeHTTP(w, r.WithContext(ctx))
 		}
-		ctx := appcontext.WithUser(r.Context(), models.User{ID: authHeader})
-		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 

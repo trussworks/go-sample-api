@@ -35,7 +35,7 @@ func (s *Server) routes() {
 	api.Use(NewFakeAuthorizeMiddleware(handlerBase))
 
 	// set up service factory
-	serviceFactory := services.NewServiceFactory(s.logger)
+	serviceFactory := services.NewServiceFactory(s.logger, s.clock)
 
 	// create store
 	store := postgres.NewStoreWithDB(s.db)
