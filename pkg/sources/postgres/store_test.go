@@ -69,8 +69,7 @@ func setup(t *testing.T) (*Store, *clock.Mock, context.Context, func(t *testing.
 	}
 	store, err := NewStore(dbConfig)
 	if err != nil {
-		fmt.Printf("Failed to get new database: %v", err)
-		t.Fail()
+		t.Fatalf("Failed to get new database: %v", err)
 	}
 
 	fn := func(t *testing.T) {
