@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 
+	"bin/bork/pkg/appconfig"
 	"bin/bork/pkg/server/httpserver"
 )
 
@@ -26,7 +27,14 @@ func TestIntegrationTestSuite(t *testing.T) {
 	config.AutomaticEnv()
 
 	if !testing.Short() {
-		server := httpserver.NewServer(config)
+		appConfig, err := appconfig.NewAppConfig(config)
+		if err != nil {
+			t.Fatalf("Error initializing appConfig: %s", err)
+		}
+		server, err := httpserver.NewServer(&appConfig)
+		if err != nil {
+			t.Fatalf("Error initializing server: %s", err)
+		}
 		testServer := httptest.NewServer(server)
 		defer testServer.Close()
 

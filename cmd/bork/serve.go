@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"bin/bork/pkg/appconfig"
 	"bin/bork/pkg/server/httpserver"
 )
 
@@ -17,6 +19,10 @@ var serveCmd = &cobra.Command{
 		config := viper.New()
 		config.AutomaticEnv()
 		fmt.Println("Serving the bork application")
-		httpserver.Serve(config)
+		appConfig, err := appconfig.NewAppConfig(config)
+		if err != nil {
+			log.Fatalf("Error initializing config %s", err)
+		}
+		httpserver.Serve(appConfig)
 	},
 }

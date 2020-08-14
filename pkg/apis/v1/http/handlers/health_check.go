@@ -4,23 +4,28 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/spf13/viper"
-
 	"bin/bork/pkg/apperrors"
 )
+type HealthDatetime string
+type HealthVersion string
+type HealthTimestamp string
 
 // NewHealthCheckHandler is a constructor for HealthCheckHandler
-func NewHealthCheckHandler(base HandlerBase, config *viper.Viper) HealthCheckHandler {
+func NewHealthCheckHandler(base HandlerBase, datetime HealthDatetime, version HealthVersion, timestamp HealthTimestamp) HealthCheckHandler {
 	return HealthCheckHandler{
 		HandlerBase: HandlerBase{},
-		Config:      config,
+		datetime: datetime,
+		version: version,
+		timestamp: timestamp,
 	}
 }
 
 // HealthCheckHandler returns the API status
 type HealthCheckHandler struct {
-	Config *viper.Viper
 	HandlerBase
+	datetime HealthDatetime
+	version  HealthVersion
+	timestamp HealthTimestamp
 }
 
 type status string
@@ -43,9 +48,9 @@ func (h HealthCheckHandler) Handle() http.HandlerFunc {
 		case "GET":
 			statusReport := healthCheck{
 				Status:    statusPass,
-				Version:   h.Config.GetString("APPLICATION_VERSION"),
-				Datetime:  h.Config.GetString("APPLICATION_DATETIME"),
-				Timestamp: h.Config.GetString("APPLICATION_TS"),
+				Version:   string(h.version),
+				Datetime:  string(h.datetime),
+				Timestamp: string(h.timestamp),
 			}
 			js, err := json.Marshal(statusReport)
 			if err != nil {

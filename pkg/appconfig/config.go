@@ -1,6 +1,11 @@
 package appconfig
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
+)
 
 // NewEnvironment returns an environment from a string
 func NewEnvironment(config string) (Environment, error) {
@@ -122,3 +127,94 @@ const DBPasswordConfigKey = "PGPASS"
 
 // DBSSLModeConfigKey is the Postgres SSL mode config key
 const DBSSLModeConfigKey = "PGSSLMODE"
+
+// AppConfig is open struct so tests can create as necessary
+type AppConfig struct {
+	Env Environment
+
+	Logger *zap.Logger
+
+	APIProtocol string
+	APIHost string
+	APIPort string
+
+	DBHost string
+	DBPort string
+	DBName string
+	DBUsername string
+	DBPassword string
+	DBSSLMode string
+
+	AppVersion string
+	AppDatetime string
+	AppTimestamp string
+}
+
+const configMissingMessage = "Must set config: %v"
+
+func getRequiredConfig(viperConfig *viper.Viper, configKey string, logger *zap.Logger) string {
+	val := viperConfig.GetString(configKey)
+	if val == "" {
+		logger.Fatal(fmt.Sprintf(configMissingMessage, configKey))
+	}
+	return val
+}
+
+func getDefaultConfigString(viperConfig *viper.Viper, configKey string, defaultVal string) string {
+	val := viperConfig.GetString(configKey)
+	if val == "" {
+		return defaultVal
+	}
+	return val
+}
+
+func NewLogger(env Environment) (*zap.Logger, error) {
+	var zapLogger *zap.Logger
+	var err error
+	if env.Prod() {
+		zapLogger, err = zap.NewProduction()
+	} else {
+		zapLogger, err = zap.NewDevelopment()
+	}
+	if err != nil {
+		return nil, err
+	}
+	return zapLogger, nil
+}
+
+func NewAppConfig(viperConfig *viper.Viper) (AppConfig, error) {
+	// Set environment from config, shared for all
+	environment, err := NewEnvironment(viperConfig.GetString(EnvironmentKey))
+	if err != nil {
+		return AppConfig{}, err
+	}
+
+	// Build logger once, shared for all
+	zapLogger, err := NewLogger(environment)
+	if err != nil {
+		return AppConfig{}, err
+	}
+
+	appConfig := AppConfig{
+		Env: environment,
+
+		Logger: zapLogger,
+
+		APIProtocol: viperConfig.GetString(APIProtocolKey),
+		APIHost: getRequiredConfig(viperConfig, APIHostKey, zapLogger),
+		APIPort: viperConfig.GetString(APIPortKey),
+
+		DBHost: getRequiredConfig(viperConfig, DBHostConfigKey, zapLogger),
+		DBPort: getRequiredConfig(viperConfig, DBPortConfigKey, zapLogger),
+		DBName: getRequiredConfig(viperConfig, DBNameConfigKey, zapLogger),
+		DBUsername: getRequiredConfig(viperConfig, DBUsernameConfigKey, zapLogger),
+		DBPassword: getRequiredConfig(viperConfig, DBPasswordConfigKey, zapLogger),
+		DBSSLMode: getRequiredConfig(viperConfig, DBSSLModeConfigKey, zapLogger),
+
+		AppVersion: viperConfig.GetString("APPLICATION_VERSION"),
+		AppDatetime: viperConfig.GetString("APPLICATION_DATETIME"),
+		AppTimestamp: viperConfig.GetString("APPLICATION_TS"),
+	}
+
+	return appConfig, nil
+}

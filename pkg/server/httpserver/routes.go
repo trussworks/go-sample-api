@@ -3,8 +3,6 @@ package httpserver
 import (
 	"time"
 
-	"go.uber.org/zap"
-
 	"bin/bork/pkg/apis/v1/http/handlers"
 	"bin/bork/pkg/services"
 	"bin/bork/pkg/sources/cache"
@@ -24,7 +22,9 @@ func (s *Server) routes() {
 	// health check goes directly on the main router to avoid auth
 	healthCheckHandler := handlers.NewHealthCheckHandler(
 		handlerBase,
-		s.Config,
+		handlers.HealthDatetime(s.datetime),
+		handlers.HealthVersion(s.version),
+		handlers.HealthTimestamp(s.timestamp),
 	)
 	s.router.HandleFunc("/api/v1/healthcheck", healthCheckHandler.Handle())
 
@@ -37,13 +37,8 @@ func (s *Server) routes() {
 	// set up service factory
 	serviceFactory := services.NewServiceFactory(s.logger)
 
-	//	create store
-	store, err := postgres.NewStore(
-		s.NewDBConfig(),
-	)
-	if err != nil {
-		s.logger.Fatal("Failed to connect to database", zap.Error(err))
-	}
+	// create store
+	store := postgres.NewStoreWithDB(s.db)
 
 	dogHandler := handlers.NewDogHandler(
 		handlerBase,
