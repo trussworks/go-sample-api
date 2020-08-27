@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail
+
+PROJECT_NAME=sample-app
+CYPRESS_CONTAINER="${PROJECT_NAME}"_cypress_1
+
+if (set +x -o nounset; aws ecr get-login-password --region "${AWS_DEFAULT_REGION}" | docker login --username AWS --password-stdin "${AWS_ACCOUNT_ID}".dkr.ecr."${AWS_DEFAULT_REGION}".amazonaws.com) ; then
+  docker-compose --project-name "${PROJECT_NAME}" -f docker-compose.yml -f docker-compose.circleci.yml pull db_migrate sample
+
+  docker-compose --project-name "${PROJECT_NAME}" -f docker-compose.yml -f docker-compose.circleci.yml build --parallel sample_client cypress
+
+  docker-compose --project-name "${PROJECT_NAME}" -f docker-compose.yml -f docker-compose.circleci.yml up -d db
+  docker-compose --project-name "${PROJECT_NAME}" -f docker-compose.yml -f docker-compose.circleci.yml up --exit-code-from db_migrate db_migrate
+  docker-compose --project-name "${PROJECT_NAME}" -f docker-compose.yml -f docker-compose.circleci.yml up -d sample sample_client
+  docker-compose --project-name "${PROJECT_NAME}" -f docker-compose.yml -f docker-compose.circleci.yml up cypress cypress
+
+  EXIT_STATUS=$(docker container inspect "${CYPRESS_CONTAINER}" --format='{{.State.ExitCode}}')
+  echo "done"
+  exit "${EXIT_STATUS}"
+else
+  exit 1
+fi
