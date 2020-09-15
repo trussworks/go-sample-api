@@ -33,8 +33,7 @@ func (w *failWriter) Header() http.Header {
 }
 
 func (s HandlerTestSuite) TestWriteErrorResponse() {
-	ctx := context.Background()
-	ctx = appcontext.WithTrace(ctx)
+	ctx, _ := appcontext.WithTrace(context.Background())
 	traceID, ok := appcontext.Trace(ctx)
 	s.True(ok)
 
