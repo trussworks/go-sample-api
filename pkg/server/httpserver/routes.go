@@ -80,6 +80,15 @@ func (s *Server) routes() {
 	)
 	api.Handle("/dogs", dogsHandler.Handle())
 
+	graphql := s.router.PathPrefix("/graphql").Subrouter()
+	// add a request based logger
+	graphql.Use(NewLoggerMiddleware(s.logger))
+
+	// use authorization on graphql
+	graphql.Use(NewFakeAuthorizeMiddleware(handlerBase))
+
+	graphql.Handle("/", playground.Handler("GraphQL playground",
+		"/graphql/query"))
 	graphResolver := &graph.Resolver{
 		Clock:  s.clock,
 		Logger: s.logger,
@@ -90,9 +99,7 @@ func (s *Server) routes() {
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(
 		generated.Config{Resolvers: graphResolver}))
 
-	api.Handle("/graphql", playground.Handler("GraphQL playground",
-		"/graphql/query"))
-	api.Handle("/graphql/query", srv)
+	graphql.Handle("/query", srv)
 
 	s.router.PathPrefix("/").Handler(handlers.NewCatchAllHandler(handlerBase).Handle())
 }
