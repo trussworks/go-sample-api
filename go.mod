@@ -16,7 +16,7 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.4.0
-	github.com/trussworks/httpbaselinetest v0.0.0
+	github.com/trussworks/httpbaselinetest v0.0.0-20200909190802-95bb54c30f5d // indirect
 	go.uber.org/zap v1.10.0
 	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
