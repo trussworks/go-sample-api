@@ -23,6 +23,6 @@ var serveCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("Error initializing config %s", err)
 		}
-		httpserver.Serve(appConfig)
+		httpserver.Serve(&appConfig)
 	},
 }

@@ -3,6 +3,11 @@ package httpserver
 import (
 	"time"
 
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
+
+	"bin/bork/graph"
+	"bin/bork/graph/generated"
 	"bin/bork/pkg/apis/v1/http/handlers"
 	"bin/bork/pkg/services"
 	"bin/bork/pkg/sources/cache"
@@ -74,6 +79,20 @@ func (s *Server) routes() {
 		),
 	)
 	api.Handle("/dogs", dogsHandler.Handle())
+
+	graphResolver := &graph.Resolver{
+		Clock:  s.clock,
+		Logger: s.logger,
+		Store:  store,
+		AuthorizeFetchDog: services.NewAuthorizeFetchDog(),
+		AuthorizeCreateDog: services.NewAuthorizeCreateDog(),
+	}
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(
+		generated.Config{Resolvers: graphResolver}))
+
+	api.Handle("/graphql", playground.Handler("GraphQL playground",
+		"/graphql/query"))
+	api.Handle("/graphql/query", srv)
 
 	s.router.PathPrefix("/").Handler(handlers.NewCatchAllHandler(handlerBase).Handle())
 }
