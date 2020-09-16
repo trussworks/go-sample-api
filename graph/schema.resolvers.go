@@ -15,7 +15,7 @@ import (
 )
 
 func (r *mutationResolver) CreateDog(ctx context.Context, input model.DogInput) (*model.Dog, error) {
-	dbInputDog, err := model.GqlNewDogToDbDog(input)
+	dbInputDog, err := model.GqlDogInputToDbDog(input)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (r *mutationResolver) UpdateDog(ctx context.Context, id string, input model
 	if !ok {
 		return nil, fmt.Errorf("Unauthorized GQL UpdateDog")
 	}
-	dbInputDog, err := model.GqlNewDogToDbDog(input)
+	dbInputDog, err := model.GqlDogInputToDbDog(input)
 	if err != nil {
 		return nil, err
 	}
