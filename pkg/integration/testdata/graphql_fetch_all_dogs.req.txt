@@ -1,0 +1,11 @@
+POST /graphql/query HTTP/1.1
+Host: example.com
+Authorization: Owner
+Content-Type: application/json
+Content-Length: 128
+
+{
+  "operationName": null,
+  "query": "\n{\n  dogs {\n    id, name, breed, birthDate, owner { id }\n  }\n}",
+  "variables": {}
+}

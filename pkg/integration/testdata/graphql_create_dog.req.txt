@@ -1,0 +1,11 @@
+POST /graphql/query HTTP/1.1
+Host: example.com
+Authorization: Owner
+Content-Type: application/json
+Content-Length: 242
+
+{
+  "operationName": null,
+  "query": "\nmutation {\n  createDog(input: {\n    birthDate: \"1970-01-01T00:00:00Z\",\n    name: \"Lola\",\n    breed: CHIHUAHUA\n  }) {\n    id, name, breed, birthDate, owner { id }\n  }\n}",
+  "variables": {}
+}

@@ -16,6 +16,7 @@ func GqlDogInputToDbDog(newDog DogInput) (*models.Dog, error) {
 		return nil, fmt.Errorf("%s is not a valid Breed", newDog.Breed)
 	}
 	d.Name = newDog.Name
+	d.BirthDate = newDog.BirthDate
 	return d, nil
 }
 

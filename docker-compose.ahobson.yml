@@ -1,0 +1,58 @@
+version: '3.4'
+
+services:
+  bork_dev:
+    container_name: bork_dev
+    ports: [ "8080:8080" ]
+    build:
+      context: .
+      target: dev
+    volumes:
+      - ${GOPATH:-~/go}:/go:cached
+      - /private/var/folders:/var/folders:cached
+      - ${PWD}:${PWD}
+    working_dir: ${PWD}
+    environment:
+      APP_ENV: local
+      API_PROTOCOL: http
+      API_HOST: 0.0.0.0
+      API_PORT: 8080
+      PGUSER: postgres
+      PGPASS: postgres
+      PGHOST: db
+      PGDATABASE: bork_dev
+      PGPORT: 5432
+      PGSSLMODE: disable
+    # for the dev environment, run air to rebuild automatically
+    command: air
+    depends_on:
+      - db
+      - flyway
+  db:
+    ports: [ "5432:5432" ]
+    image: postgres:12.2
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bork_dev
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  flyway:
+    build:
+      context: .
+      dockerfile: Dockerfile.flyway
+    depends_on:
+      - db
+    environment:
+      PGUSER: postgres
+      PGPASS: postgres
+      PGHOST: db
+      PGDATABSE: bork_dev
+      PGPORT: 5432
+      PGSSLMODE: disable
+    volumes:
+      - ./flyway.conf:/flyway/conf/flyway.conf
+      - ./migrations:/flyway/migrations
+    command: -connectRetries=60 migrate

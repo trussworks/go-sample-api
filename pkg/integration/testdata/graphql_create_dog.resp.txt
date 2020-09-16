@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "data": {
+    "createDog": {
+      "birthDate": "1970-01-01T00:00:00Z",
+      "breed": "CHIHUAHUA",
+      "id": "106ad75d-13bb-4c91-8a49-db8b00bd58b4",
+      "name": "Lola",
+      "owner": {
+        "id": "Owner"
+      }
+    }
+  }
+}

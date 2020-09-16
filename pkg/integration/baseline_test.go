@@ -72,18 +72,18 @@ func TestBaselines(t *testing.T) {
 	bts := httpbaselinetest.NewDefaultHttpBaselineTestSuite(t)
 
 	bts.Run("GET v1 dog without auth", httpbaselinetest.HttpBaselineTest{
-		Setup: setupFunc,
+		Setup:    setupFunc,
 		Teardown: teardownFunc,
-		Method:  http.MethodGet,
-		Path:    "/api/v1/dog/00000000-0000-0000-0000-000000000000",
-		Seed: "chihuahua.seed.yml",
+		Method:   http.MethodGet,
+		Path:     "/api/v1/dog/00000000-0000-0000-0000-000000000000",
+		Seed:     "chihuahua.seed.yml",
 	})
 
 	bts.Run("GET v1 dog with auth", httpbaselinetest.HttpBaselineTest{
-		Setup: setupFunc,
+		Setup:    setupFunc,
 		Teardown: teardownFunc,
-		Method:  http.MethodGet,
-		Path:    "/api/v1/dog/00000000-0000-0000-0000-000000000000",
+		Method:   http.MethodGet,
+		Path:     "/api/v1/dog/00000000-0000-0000-0000-000000000000",
 		Headers: map[string]string{
 			"Authorization": "Owner",
 		},
@@ -91,20 +91,20 @@ func TestBaselines(t *testing.T) {
 	})
 
 	bts.Run("GET v1 dog missing", httpbaselinetest.HttpBaselineTest{
-		Setup: setupFunc,
+		Setup:    setupFunc,
 		Teardown: teardownFunc,
-		Method:  http.MethodGet,
-		Path:    "/api/v1/dog/00000000-0000-0000-0000-000000000000",
+		Method:   http.MethodGet,
+		Path:     "/api/v1/dog/00000000-0000-0000-0000-000000000000",
 		Headers: map[string]string{
 			"Authorization": "Owner",
 		},
 	})
 
 	bts.Run("POST v1 dog with auth", httpbaselinetest.HttpBaselineTest{
-		Setup: setupFunc,
+		Setup:    setupFunc,
 		Teardown: teardownFunc,
-		Method:  http.MethodPost,
-		Path:    "/api/v1/dog",
+		Method:   http.MethodPost,
+		Path:     "/api/v1/dog",
 		Body: map[string]string{
 			"name":      "Lola",
 			"breed":     "Chihuahua",
@@ -112,7 +112,78 @@ func TestBaselines(t *testing.T) {
 		},
 		Headers: map[string]string{
 			"Authorization": "Owner",
-			"Content-Type": "application/json",
+			"Content-Type":  "application/json",
+		},
+		Tables: []string{"dog"},
+	})
+
+	emptyMap := make(map[string]string, 0)
+	bts.Run("GraphQL fetch all dogs", httpbaselinetest.HttpBaselineTest{
+		Setup:    setupFunc,
+		Teardown: teardownFunc,
+		Method:   http.MethodPost,
+		Path:     "/graphql/query",
+		Body: map[string]interface{}{
+			"operationName": nil,
+			"variables":     emptyMap,
+			"query": `
+{
+  dogs {
+    id, name, breed, birthDate, owner { id }
+  }
+}`,
+		},
+		Headers: map[string]string{
+			"Authorization": "Owner",
+			"Content-Type":  "application/json",
+		},
+		Seed: "chihuahua.seed.yml",
+	})
+
+	bts.Run("GraphQL fetch single dog", httpbaselinetest.HttpBaselineTest{
+		Setup:    setupFunc,
+		Teardown: teardownFunc,
+		Method:   http.MethodPost,
+		Path:     "/graphql/query",
+		Body: map[string]interface{}{
+			"operationName": nil,
+			"variables":     emptyMap,
+			"query": `
+{
+  dog(dogId: "00000000-0000-0000-0000-000000000000") {
+    id, name, breed, birthDate, owner { id }
+  }
+}`,
+		},
+		Headers: map[string]string{
+			"Authorization": "Owner",
+			"Content-Type":  "application/json",
+		},
+		Seed: "chihuahua.seed.yml",
+	})
+
+	bts.Run("GraphQL create dog", httpbaselinetest.HttpBaselineTest{
+		Setup:    setupFunc,
+		Teardown: teardownFunc,
+		Method:   http.MethodPost,
+		Path:     "/graphql/query",
+		Body: map[string]interface{}{
+			"operationName": nil,
+			"variables":     emptyMap,
+			"query": `
+mutation {
+  createDog(input: {
+    birthDate: "` + testAppConfig.Clock.Now().Format(time.RFC3339) + `",
+    name: "Lola",
+    breed: CHIHUAHUA
+  }) {
+    id, name, breed, birthDate, owner { id }
+  }
+}`,
+		},
+		Headers: map[string]string{
+			"Authorization": "Owner",
+			"Content-Type":  "application/json",
 		},
 		Tables: []string{"dog"},
 	})
