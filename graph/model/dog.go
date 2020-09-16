@@ -6,7 +6,7 @@ import (
 	"bin/bork/pkg/models"
 )
 
-func GqlNewDogToDbDog(newDog NewDog) (*models.Dog, error) {
+func GqlNewDogToDbDog(newDog DogInput) (*models.Dog, error) {
 
 	d := &models.Dog{}
 	switch (newDog.Breed) {

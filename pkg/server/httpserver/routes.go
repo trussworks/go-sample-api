@@ -90,11 +90,13 @@ func (s *Server) routes() {
 	graphql.Handle("/", playground.Handler("GraphQL playground",
 		"/graphql/query"))
 	graphResolver := &graph.Resolver{
-		Clock:  s.clock,
-		Logger: s.logger,
-		Store:  store,
-		AuthorizeFetchDog: services.NewAuthorizeFetchDog(),
+		Clock:              s.clock,
+		Logger:             s.logger,
+		Store:              store,
+		AuthorizeFetchDogs: services.NewAuthorizeFetchDogs(),
+		AuthorizeFetchDog:  services.NewAuthorizeFetchDog(),
 		AuthorizeCreateDog: services.NewAuthorizeCreateDog(),
+		AuthorizeUpdateDog: services.NewAuthorizeUpdateDog(),
 	}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(
 		generated.Config{Resolvers: graphResolver}))

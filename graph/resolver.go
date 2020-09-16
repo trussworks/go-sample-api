@@ -13,12 +13,14 @@ import (
 // It serves as dependency injection for your app, add any
 // dependencies you require here.
 
-type AuthorizeFetchDog func(user models.User, dog *models.Dog) (bool, error)
-type AuthorizeCreateDog func(user models.User, dog *models.Dog) (bool, error)
+type Authorize func(user models.User) (bool, error)
+type AuthorizeDog func(user models.User, dog *models.Dog) (bool, error)
 type Resolver struct {
-	Clock  clock.Clock
-	Logger *zap.Logger
-	Store  *postgres.Store
-	AuthorizeFetchDog AuthorizeFetchDog
-	AuthorizeCreateDog AuthorizeCreateDog
+	Clock              clock.Clock
+	Logger             *zap.Logger
+	Store              *postgres.Store
+	AuthorizeFetchDogs Authorize
+	AuthorizeFetchDog  AuthorizeDog
+	AuthorizeCreateDog AuthorizeDog
+	AuthorizeUpdateDog AuthorizeDog
 }

@@ -17,7 +17,7 @@ type Dog struct {
 	Owner     *Owner    `json:"owner"`
 }
 
-type NewDog struct {
+type DogInput struct {
 	BirthDate time.Time `json:"birthDate"`
 	Breed     Breed     `json:"breed"`
 	Name      string    `json:"name"`

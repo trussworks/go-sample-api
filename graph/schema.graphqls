@@ -20,14 +20,17 @@ type Owner {
 
 type Query {
   dogs: [Dog!]!
+  dog(dogId: ID!): Dog
 }
 
-input NewDog {
+input DogInput {
   birthDate: Time!
   breed: Breed!
   name: String!
 }
 
+
 type Mutation {
-  createDog(input: NewDog!): Dog!
+  createDog(input: DogInput!): Dog!
+  updateDog(id: ID!, input: DogInput!): Dog!
 }
