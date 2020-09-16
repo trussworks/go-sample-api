@@ -4,7 +4,6 @@ Content-Type: application/json
 {
   "data": {
     "dogs": [
-      null,
       {
         "birthDate": "1970-01-01T00:00:00Z",
         "breed": "CHIHUAHUA",
@@ -15,15 +14,5 @@ Content-Type: application/json
         }
       }
     ]
-  },
-  "errors": [
-    {
-      "message": "must not be null",
-      "path": [
-        "dogs",
-        0,
-        "birthDate"
-      ]
-    }
-  ]
+  }
 }
