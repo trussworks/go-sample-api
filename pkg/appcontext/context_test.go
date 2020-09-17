@@ -44,12 +44,11 @@ func (s ContextTestSuite) TestLogger() {
 }
 
 func (s ContextTestSuite) TestWithTrace() {
-	ctx := context.Background()
-
-	ctx = WithTrace(ctx)
+	ctx, tID := WithTrace(context.Background())
 	traceID := ctx.Value(traceKey).(uuid.UUID)
 
 	s.NotEqual(uuid.UUID{}, traceID)
+	s.Equal(tID.String(), traceID.String())
 }
 
 func (s ContextTestSuite) TestTrace() {
