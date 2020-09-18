@@ -49,7 +49,7 @@ services:
       PGUSER: postgres
       PGPASS: postgres
       PGHOST: db
-      PGDATABSE: bork_dev
+      PGDATABASE: bork_dev
       PGPORT: 5432
       PGSSLMODE: disable
     volumes:

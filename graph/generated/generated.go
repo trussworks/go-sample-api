@@ -54,6 +54,8 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		CreateDog func(childComplexity int, input model.DogInput) int
+		Login     func(childComplexity int, userID string) int
+		Logout    func(childComplexity int, userID string) int
 		UpdateDog func(childComplexity int, id string, input model.DogInput) int
 	}
 
@@ -71,6 +73,8 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateDog(ctx context.Context, input model.DogInput) (*model.Dog, error)
 	UpdateDog(ctx context.Context, id string, input model.DogInput) (*model.Dog, error)
+	Login(ctx context.Context, userID string) (*model.Owner, error)
+	Logout(ctx context.Context, userID string) (*model.Owner, error)
 }
 type QueryResolver interface {
 	Dogs(ctx context.Context) ([]*model.Dog, error)
@@ -138,6 +142,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateDog(childComplexity, args["input"].(model.DogInput)), true
+
+	case "Mutation.login":
+		if e.complexity.Mutation.Login == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_login_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Login(childComplexity, args["userId"].(string)), true
+
+	case "Mutation.logout":
+		if e.complexity.Mutation.Logout == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_logout_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Logout(childComplexity, args["userId"].(string)), true
 
 	case "Mutation.updateDog":
 		if e.complexity.Mutation.UpdateDog == nil {
@@ -283,6 +311,8 @@ input DogInput {
 type Mutation {
   createDog(input: DogInput!): Dog!
   updateDog(id: ID!, input: DogInput!): Dog!
+  login(userId: ID!): Owner!
+  logout(userId: ID!): Owner!
 }
 `, BuiltIn: false},
 }
@@ -304,6 +334,36 @@ func (ec *executionContext) field_Mutation_createDog_args(ctx context.Context, r
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userId"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("userId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_logout_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userId"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("userId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userId"] = arg0
 	return args, nil
 }
 
@@ -649,6 +709,88 @@ func (ec *executionContext) _Mutation_updateDog(ctx context.Context, field graph
 	res := resTmp.(*model.Dog)
 	fc.Result = res
 	return ec.marshalNDog2ᚖbinᚋborkᚋgraphᚋmodelᚐDog(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_login_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Login(rctx, args["userId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Owner)
+	fc.Result = res
+	return ec.marshalNOwner2ᚖbinᚋborkᚋgraphᚋmodelᚐOwner(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_logout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_logout_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Logout(rctx, args["userId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Owner)
+	fc.Result = res
+	return ec.marshalNOwner2ᚖbinᚋborkᚋgraphᚋmodelᚐOwner(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Owner_id(ctx context.Context, field graphql.CollectedField, obj *model.Owner) (ret graphql.Marshaler) {
@@ -2031,6 +2173,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "login":
+			out.Values[i] = ec._Mutation_login(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "logout":
+			out.Values[i] = ec._Mutation_logout(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2468,6 +2620,10 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNOwner2binᚋborkᚋgraphᚋmodelᚐOwner(ctx context.Context, sel ast.SelectionSet, v model.Owner) graphql.Marshaler {
+	return ec._Owner(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNOwner2ᚖbinᚋborkᚋgraphᚋmodelᚐOwner(ctx context.Context, sel ast.SelectionSet, v *model.Owner) graphql.Marshaler {

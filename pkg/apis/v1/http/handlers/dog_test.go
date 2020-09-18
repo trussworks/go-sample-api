@@ -21,7 +21,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		ID:        uuid.New(),
 		Name:      "Chihua",
 		Breed:     models.Chihuahua,
-		BirthDate: s.base.clock.Now(),
+		BirthDate: s.base.Clock.Now(),
 	}
 	fakeFetchDog := func(ctx context.Context, id uuid.UUID) (*models.Dog, error) {
 		return &dog, nil

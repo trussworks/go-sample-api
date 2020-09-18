@@ -33,4 +33,6 @@ input DogInput {
 type Mutation {
   createDog(input: DogInput!): Dog!
   updateDog(id: ID!, input: DogInput!): Dog!
+  login(userId: ID!): Owner!
+  logout(userId: ID!): Owner!
 }

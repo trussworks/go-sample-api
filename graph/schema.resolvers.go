@@ -15,14 +15,14 @@ import (
 )
 
 func (r *mutationResolver) CreateDog(ctx context.Context, input model.DogInput) (*model.Dog, error) {
+	user, ok := appcontext.User(ctx)
+	if !ok {
+		r.Logger.Error("Failed to get User from context")
+		return nil, fmt.Errorf("Failed to get User from context")
+	}
 	dbInputDog, err := model.GqlDogInputToDbDog(input)
 	if err != nil {
 		return nil, err
-	}
-	user, ok := appcontext.User(ctx)
-	if !ok {
-		r.Logger.Error("failed to get context")
-		return nil, fmt.Errorf("failed to get context")
 	}
 	ok, err = r.AuthorizeCreateDog(user, dbInputDog)
 	if err != nil {
@@ -46,15 +46,15 @@ func (r *mutationResolver) CreateDog(ctx context.Context, input model.DogInput) 
 }
 
 func (r *mutationResolver) UpdateDog(ctx context.Context, id string, input model.DogInput) (*model.Dog, error) {
+	user, ok := appcontext.User(ctx)
+	if !ok {
+		r.Logger.Error("Failed to get User from context")
+		return nil, fmt.Errorf("Failed to get User from context")
+	}
 	dbid := uuid.MustParse(id)
 	dbDog, err := r.Store.FetchDog(ctx, dbid)
 	if err != nil {
 		return nil, err
-	}
-	user, ok := appcontext.User(ctx)
-	if !ok {
-		r.Logger.Error("failed to get context")
-		return nil, fmt.Errorf("failed to get context")
 	}
 	ok, err = r.AuthorizeUpdateDog(user, dbDog)
 	if err != nil {
@@ -84,11 +84,44 @@ func (r *mutationResolver) UpdateDog(ctx context.Context, id string, input model
 	return gqlDog, nil
 }
 
+func (r *mutationResolver) Login(ctx context.Context, userID string) (*model.Owner, error) {
+	// In the real world, validate credentials ...
+	sessionCreator, ok := appcontext.SessionCreator(ctx)
+	if !ok {
+		return nil, fmt.Errorf("Cannot create session after login")
+	}
+	err := sessionCreator(userID)
+	if err != nil {
+		return nil, err
+	}
+	return &model.Owner{ID: userID}, nil
+}
+
+func (r *mutationResolver) Logout(ctx context.Context, userID string) (*model.Owner, error) {
+	// must be logged in to log out
+	user, ok := appcontext.User(ctx)
+	if !ok {
+		r.Logger.Error("Failed to get User from context")
+		return nil, fmt.Errorf("Failed to get User from context")
+	}
+	r.Logger.Info(fmt.Sprintf("logging out user: %s", user))
+	sessionCreator, ok := appcontext.SessionCreator(ctx)
+	if !ok {
+		return nil, fmt.Errorf("Cannot create session after login")
+	}
+	// fake invalidating session
+	err := sessionCreator("")
+	if err != nil {
+		return nil, err
+	}
+	return &model.Owner{ID: user.ID, Email: user.Email}, nil
+}
+
 func (r *queryResolver) Dogs(ctx context.Context) ([]*model.Dog, error) {
 	user, ok := appcontext.User(ctx)
 	if !ok {
-		r.Logger.Error("failed to get context")
-		return nil, fmt.Errorf("failed to get context")
+		r.Logger.Error("Failed to get User from context")
+		return nil, fmt.Errorf("Failed to get User from context")
 	}
 	ok, err := r.AuthorizeFetchDogs(user)
 	if err != nil {
@@ -116,15 +149,15 @@ func (r *queryResolver) Dogs(ctx context.Context) ([]*model.Dog, error) {
 }
 
 func (r *queryResolver) Dog(ctx context.Context, dogID string) (*model.Dog, error) {
+	user, ok := appcontext.User(ctx)
+	if !ok {
+		r.Logger.Error("Failed to get User from context")
+		return nil, fmt.Errorf("Failed to get User from context")
+	}
 	uuid := uuid.MustParse(dogID)
 	dbDog, err := r.Store.FetchDog(ctx, uuid)
 	if err != nil {
 		return nil, err
-	}
-	user, ok := appcontext.User(ctx)
-	if !ok {
-		r.Logger.Error("failed to get context")
-		return nil, fmt.Errorf("failed to get context")
 	}
 	ok, err = r.AuthorizeFetchDog(user, dbDog)
 	if err != nil {
