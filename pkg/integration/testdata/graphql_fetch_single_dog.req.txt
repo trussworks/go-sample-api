@@ -1,7 +1,7 @@
 POST /graphql/query HTTP/1.1
 Host: example.com
-Authorization: Owner
 Content-Type: application/json
+Cookie: go-sample-api-session=Owner
 Content-Length: 176
 
 {

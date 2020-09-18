@@ -297,10 +297,8 @@ github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81P
 github.com/subosito/gotenv v1.2.0 h1:Slr1R9HxAlEKefgq5jn9U+DnETlIUa6HfgEzj0g5d7s=
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
-github.com/trussworks/httpbaselinetest v0.0.0-20200909190802-95bb54c30f5d h1:o/erfYWCrRQeDbcQxwIYqmT32WSzmRLay7PFK9KDSpE=
-github.com/trussworks/httpbaselinetest v0.0.0-20200909190802-95bb54c30f5d/go.mod h1:R42bEc3ukcOO5i7kNb9OaEiTtKx0ZKOdEDr6beetfGg=
-github.com/trussworks/httpbaselinetest v0.0.0-20200916215707-58913bfa641c h1:KwP61iyJSfmUD5N/MgiPd9fJIBZWjBBCtvccsE6F84w=
-github.com/trussworks/httpbaselinetest v0.0.0-20200916215707-58913bfa641c/go.mod h1:pAHAzKrtrJDtEgYzuCKuGQymAt3CBRqhfGNyGIAoFDM=
+github.com/trussworks/httpbaselinetest v0.0.0-20200918153045-e3e228c19e19 h1:gYKI5sXS9eJ8eTvQgEEflnoknPqRzyebye6U73zgmzA=
+github.com/trussworks/httpbaselinetest v0.0.0-20200918153045-e3e228c19e19/go.mod h1:pAHAzKrtrJDtEgYzuCKuGQymAt3CBRqhfGNyGIAoFDM=
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=
 github.com/urfave/cli/v2 v2.1.1 h1:Qt8FeAtxE/vfdrLmR3rxR6JRE0RoVmbXu8+6kZtYU4k=
 github.com/urfave/cli/v2 v2.1.1/go.mod h1:SE9GqnLQmjVa0iPEY0f1w3ygNIYcIJ0OKPMoW2caLfQ=

@@ -14,10 +14,10 @@ import (
 )
 
 // NewHandlerBase is a constructor for HandlerBase
-func NewHandlerBase(logger *zap.Logger) HandlerBase {
+func NewHandlerBase(logger *zap.Logger, clock clock.Clock) HandlerBase {
 	return HandlerBase{
 		Logger: logger,
-		Clock:  clock.New(),
+		Clock:  clock,
 	}
 }
 

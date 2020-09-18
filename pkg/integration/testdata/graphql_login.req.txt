@@ -1,0 +1,10 @@
+POST /graphql/query HTTP/1.1
+Host: example.com
+Content-Type: application/json
+Content-Length: 126
+
+{
+  "operationName": null,
+  "query": "\nmutation {\n  login(userId: \"Owner\") {\n    id, email\n  }\n}",
+  "variables": {}
+}

@@ -22,7 +22,7 @@ func (s *Server) routes() {
 	api := s.router.PathPrefix("/api/v1").Subrouter()
 
 	// set up base handler
-	handlerBase := handlers.NewHandlerBase(s.logger)
+	handlerBase := handlers.NewHandlerBase(s.logger, s.clock)
 
 	// health check goes directly on the main router to avoid auth
 	healthCheckHandler := handlers.NewHealthCheckHandler(

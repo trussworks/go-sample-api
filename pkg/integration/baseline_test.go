@@ -31,6 +31,18 @@ func TestBaselines(t *testing.T) {
 		t.Fatalf("Error initializing config: %s", err)
 	}
 
+	origDb, err := postgres.NewDB(&origAppConfig)
+	if err != nil {
+		t.Fatalf("Error initializing original db: %s", err)
+	}
+	_, err = origDb.Exec("TRUNCATE dog")
+	if err != nil {
+		t.Fatalf("Error running `TRUNCATE dog`: %s", err)
+	}
+	err = origDb.Close()
+	if err != nil {
+		t.Fatalf("Error closing db: %s", err)
+	}
 	dataSourceName := postgres.BuildDataSourceName(&origAppConfig)
 
 	txdb.Register("pgx", "postgres", dataSourceName)
@@ -118,11 +130,35 @@ func TestBaselines(t *testing.T) {
 	})
 
 	emptyMap := make(map[string]string, 0)
+
+	bts.Run("GraphQL login", httpbaselinetest.HttpBaselineTest{
+		Setup:    setupFunc,
+		Teardown: teardownFunc,
+		Method:   http.MethodPost,
+		Path:     "/graphql/query",
+		Body: map[string]interface{}{
+			"operationName": nil,
+			"variables":     emptyMap,
+			"query": `
+mutation {
+  login(userId: "Owner") {
+    id, email
+  }
+}`,
+		},
+		Headers: map[string]string{
+			"Content-Type":  "application/json",
+		},
+	})
+
+	authCookie := httpserver.CreateCookie("Owner", "/graphql",
+		testAppConfig.Clock.Now())
 	bts.Run("GraphQL fetch all dogs", httpbaselinetest.HttpBaselineTest{
 		Setup:    setupFunc,
 		Teardown: teardownFunc,
 		Method:   http.MethodPost,
 		Path:     "/graphql/query",
+		Cookies:  []http.Cookie{authCookie},
 		Body: map[string]interface{}{
 			"operationName": nil,
 			"variables":     emptyMap,
@@ -134,7 +170,6 @@ func TestBaselines(t *testing.T) {
 }`,
 		},
 		Headers: map[string]string{
-			"Authorization": "Owner",
 			"Content-Type":  "application/json",
 		},
 		Seed: "chihuahua.seed.yml",
@@ -145,6 +180,7 @@ func TestBaselines(t *testing.T) {
 		Teardown: teardownFunc,
 		Method:   http.MethodPost,
 		Path:     "/graphql/query",
+		Cookies:  []http.Cookie{authCookie},
 		Body: map[string]interface{}{
 			"operationName": nil,
 			"variables":     emptyMap,
@@ -156,7 +192,6 @@ func TestBaselines(t *testing.T) {
 }`,
 		},
 		Headers: map[string]string{
-			"Authorization": "Owner",
 			"Content-Type":  "application/json",
 		},
 		Seed: "chihuahua.seed.yml",
@@ -167,6 +202,7 @@ func TestBaselines(t *testing.T) {
 		Teardown: teardownFunc,
 		Method:   http.MethodPost,
 		Path:     "/graphql/query",
+		Cookies:  []http.Cookie{authCookie},
 		Body: map[string]interface{}{
 			"operationName": nil,
 			"variables":     emptyMap,
@@ -182,7 +218,6 @@ mutation {
 }`,
 		},
 		Headers: map[string]string{
-			"Authorization": "Owner",
 			"Content-Type":  "application/json",
 		},
 		Tables: []string{"dog"},

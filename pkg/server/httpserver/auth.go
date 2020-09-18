@@ -40,20 +40,26 @@ type SimpleSessionMiddlewareFactory struct {
 	path string
 }
 
+func CreateCookie(session string, path string, now time.Time) http.Cookie {
+	expires := now.Add(20 * time.Minute)
+	return http.Cookie{
+		Name:    CookieName,
+		Value:   session,
+		Path:    path,
+		Expires: expires,
+		MaxAge:  86400,
+	}
+}
+
 func (m SimpleSessionMiddlewareFactory) authorizeMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := appcontext.WithSessionCreator(r.Context(),
 			func(session string) error {
 				// The cookie settings should be configurable,
 				// but as a proof of concept ...
-				expires := m.base.Clock.Now().Add(20 * time.Minute)
-				http.SetCookie(w, &http.Cookie{
-					Name: CookieName,
-					Value: session,
-					Path: m.path,
-					Expires: expires,
-					MaxAge: 86400,
-				})
+				cookie := CreateCookie(session, m.path,
+					m.base.Clock.Now())
+				http.SetCookie(w, &cookie)
 				return nil
 			})
 		sessionCookie, err := r.Cookie(CookieName)
