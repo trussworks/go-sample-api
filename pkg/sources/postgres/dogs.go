@@ -53,7 +53,7 @@ func (s *Store) CreateDog(ctx context.Context, dog *models.Dog) (*models.Dog, er
 	if err != nil {
 		return nil, err
 	}
-	return dog, nil
+	return s.FetchDog(ctx, dog.ID)
 }
 
 // UpdateDog creates a dog in the DB
@@ -78,21 +78,21 @@ func (s *Store) UpdateDog(ctx context.Context, dog *models.Dog) (*models.Dog, er
 	if rows == 0 {
 		return nil, &apperrors.ResourceNotFoundError{Resource: dog}
 	}
-	return dog, nil
+	return s.FetchDog(ctx, dog.ID)
 }
 
 // FetchDogs queries the DB for dogs
 func (s *Store) FetchDogs(ctx context.Context) (*models.Dogs, error) {
-	dog := models.Dogs{}
+	dogs := models.Dogs{}
 	const fetchDogsSQL = `
 		SELECT
 			*
 		FROM
 			dog`
 
-	err := s.db.Select(&dog, fetchDogsSQL)
+	err := s.db.Select(&dogs, fetchDogsSQL)
 	if err != nil {
 		return nil, err
 	}
-	return &dog, nil
+	return &dogs, nil
 }

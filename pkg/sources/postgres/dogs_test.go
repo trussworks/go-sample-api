@@ -113,7 +113,8 @@ func (s StoreTestSuite) TestUpdateDog() {
 		s.NoError(err)
 		createdDog.Name = "Lolita"
 
-		actualDog, err := s.store.UpdateDog(ctx, &dog)
+		s.NotEqual(dog.Name, createdDog.Name)
+		actualDog, err := s.store.UpdateDog(ctx, createdDog)
 
 		s.NoError(err)
 		s.Equal("Lolita", actualDog.Name)
