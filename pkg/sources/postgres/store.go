@@ -2,9 +2,10 @@ package postgres
 
 import (
 	"fmt"
-
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // required for postgres driver in sqlx
+
+	"bin/bork/pkg/appconfig"
 )
 
 // Store performs database operations for the bork application
@@ -12,32 +13,41 @@ type Store struct {
 	db *sqlx.DB
 }
 
-// DBConfig holds the configurations for a database connection
-type DBConfig struct {
-	Host     string
-	Port     string
-	Database string
-	Username string
-	Password string
-	SSLMode  string
+
+func BuildDataSourceName(appConfig *appconfig.AppConfig) string {
+	var sslmode = "disable"
+	if appConfig.DBSSLMode == "enable" {
+		sslmode = "enable"
+	}
+	return fmt.Sprintf(
+		"host=%s port=%s user=%s "+
+			"password=%s dbname=%s sslmode=%s",
+		appConfig.DBHost,
+		appConfig.DBPort,
+		appConfig.DBUsername,
+		appConfig.DBPassword,
+		appConfig.DBName,
+		sslmode,
+	)
 }
 
-// NewStore is a constructor for a store
-func NewStore(
-	config DBConfig,
-) (*Store, error) {
-	dataSourceName := fmt.Sprintf(
-		"host=%s port=%s user=%s "+
-			"password=%s dbname=%s sslmode=disable",
-		config.Host,
-		config.Port,
-		config.Username,
-		config.Password,
-		config.Database,
-	)
-	db, err := sqlx.Connect("postgres", dataSourceName)
+func NewDB(appConfig *appconfig.AppConfig) (*sqlx.DB, error) {
+	db, err := sqlx.Connect(appConfig.DBDriver, BuildDataSourceName(appConfig))
 	if err != nil {
 		return nil, err
 	}
-	return &Store{db: db}, nil
+	return db, nil
+}
+
+func NewStore(appConfig *appconfig.AppConfig) (*Store, error) {
+	db, err := NewDB(appConfig)
+	if err != nil {
+		return nil, err
+	}
+	return NewStoreWithDB(db), nil
+}
+
+// NewStore is a constructor for a store
+func NewStoreWithDB(db *sqlx.DB) *Store {
+	return &Store{db: db}
 }

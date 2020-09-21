@@ -15,8 +15,7 @@ type ServicesTestSuite struct {
 
 func TestServicesTestSuite(t *testing.T) {
 	logger := zap.NewNop()
-	serviceFactory := NewServiceFactory(logger)
-	serviceFactory.clock = clock.NewMock()
+	serviceFactory := NewServiceFactory(logger, clock.NewMock())
 
 	servicesTestSuite := &ServicesTestSuite{
 		Suite:          suite.Suite{},

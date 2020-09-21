@@ -1,0 +1,11 @@
+POST /api/v1/dog HTTP/1.1
+Host: example.com
+Authorization: Owner
+Content-Type: application/json
+Content-Length: 83
+
+{
+  "birthDate": "1970-01-01T00:00:00Z",
+  "breed": "Chihuahua",
+  "name": "Lola"
+}

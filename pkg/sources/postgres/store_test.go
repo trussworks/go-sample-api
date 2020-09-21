@@ -1,11 +1,9 @@
 package postgres
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/facebookgo/clock"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // required for postgres driver in sqlx
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
@@ -15,7 +13,6 @@ import (
 
 type StoreTestSuite struct {
 	suite.Suite
-	db    *sqlx.DB
 	store *Store
 	clock *clock.Mock
 }
@@ -24,30 +21,25 @@ func TestStoreTestSuite(t *testing.T) {
 	config := viper.New()
 	config.AutomaticEnv()
 
-	dbConfig := DBConfig{
-		Host:     config.GetString(appconfig.DBHostConfigKey),
-		Port:     config.GetString(appconfig.DBPortConfigKey),
-		Database: config.GetString(appconfig.DBNameConfigKey),
-		Username: config.GetString(appconfig.DBUsernameConfigKey),
-		Password: config.GetString(appconfig.DBPasswordConfigKey),
-		SSLMode:  config.GetString(appconfig.DBSSLModeConfigKey),
-	}
-	store, err := NewStore(dbConfig)
+	origAppConfig, err := appconfig.NewAppConfig(config)
 	if err != nil {
-		fmt.Printf("Failed to get new database: %v", err)
-		t.Fail()
+		t.Fatalf("Error initializing config: %s", err)
+	}
+
+	store, err := NewStore(&origAppConfig)
+	if err != nil {
+		t.Fatalf("Error initializing store: %s", err)
 	}
 
 	storeTestSuite := &StoreTestSuite{
 		Suite: suite.Suite{},
-		db:    store.db,
-		store: store,
 		clock: clock.NewMock(),
+		store: store,
 	}
 
 	suite.Run(t, storeTestSuite)
 }
 
-func (s StoreTestSuite) SetupTest() {
+func (s *StoreTestSuite) SetupTest() {
 	s.store.db.MustExec("TRUNCATE dog")
 }

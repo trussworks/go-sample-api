@@ -1,0 +1,17 @@
+{
+  "dog": {
+    "numRowsInserted": 1,
+    "numRowsUpdated": 0,
+    "numRowsDeleted": 0,
+    "removedRows": [],
+    "addedRows": [
+      {
+        "birth_date": "1970-01-01T00:00:00+00:00",
+        "breed": "Chihuahua",
+        "id": "8fd7f84c-ce1c-463c-ba3f-ea81725f1eb4",
+        "name": "Lola",
+        "owner_id": "Owner"
+      }
+    ]
+  }
+}
