@@ -45,21 +45,25 @@ func (s *Server) routes() {
 	// create store
 	store := postgres.NewStoreWithDB(s.db)
 
+	fetchDogService := serviceFactory.NewFetchDog(
+		services.NewAuthorizeFetchDog(),
+		store.FetchDog,
+	)
+	createDogService := serviceFactory.NewCreateDog(
+		services.NewAuthorizeCreateDog(),
+		store.CreateDog,
+	)
+	updateDogService := serviceFactory.NewUpdateDog(
+		services.NewAuthorizeUpdateDog(),
+		store.UpdateDog,
+		store.FetchDog,
+	)
+
 	dogHandler := handlers.NewDogHandler(
 		handlerBase,
-		serviceFactory.NewFetchDog(
-			services.NewAuthorizeFetchDog(),
-			store.FetchDog,
-		),
-		serviceFactory.NewCreateDog(
-			services.NewAuthorizeCreateDog(),
-			store.CreateDog,
-		),
-		serviceFactory.NewUpdateDog(
-			services.NewAuthorizeUpdateDog(),
-			store.UpdateDog,
-			store.FetchDog,
-		),
+		fetchDogService,
+		createDogService,
+		updateDogService,
 	)
 	api.Handle("/dog/{dog_id}", dogHandler.Handle())
 	api.Handle("/dog", dogHandler.Handle())
@@ -71,12 +75,14 @@ func (s *Server) routes() {
 		DogCacheStore: memory.NewStore(),
 		DogReadStore:  store,
 	}
+	fetchDogsService := serviceFactory.NewFetchDogs(
+		services.NewAuthorizeFetchDogs(),
+		cache.NewStore(cacheConfig).FetchDogs,
+	)
+
 	dogsHandler := handlers.NewDogsHandler(
 		handlerBase,
-		serviceFactory.NewFetchDogs(
-			services.NewAuthorizeFetchDogs(),
-			cache.NewStore(cacheConfig).FetchDogs,
-		),
+		fetchDogsService,
 	)
 	api.Handle("/dogs", dogsHandler.Handle())
 
@@ -90,13 +96,12 @@ func (s *Server) routes() {
 		"/graphql/query"))
 
 	graphResolver := &graph.Resolver{
-		Clock:              s.clock,
-		Logger:             s.logger,
-		Store:              store,
-		AuthorizeFetchDogs: services.NewAuthorizeFetchDogs(),
-		AuthorizeFetchDog:  services.NewAuthorizeFetchDog(),
-		AuthorizeCreateDog: services.NewAuthorizeCreateDog(),
-		AuthorizeUpdateDog: services.NewAuthorizeUpdateDog(),
+		Clock:       s.clock,
+		Logger:      s.logger,
+		FetchDbDog:  fetchDogService,
+		CreateDbDog: createDogService,
+		UpdateDbDog: updateDogService,
+		FetchDbDogs: fetchDogsService,
 	}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(
 		generated.Config{Resolvers: graphResolver}))

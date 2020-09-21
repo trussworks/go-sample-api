@@ -11,30 +11,14 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 )
 
 func (r *mutationResolver) CreateDog(ctx context.Context, input model.DogInput) (*model.Dog, error) {
-	user, ok := appcontext.User(ctx)
-	if !ok {
-		r.Logger.Error("Failed to get User from context")
-		return nil, fmt.Errorf("Failed to get User from context")
-	}
 	dbInputDog, err := model.GqlDogInputToDbDog(input)
 	if err != nil {
 		return nil, err
 	}
-	ok, err = r.AuthorizeCreateDog(user, dbInputDog)
-	if err != nil {
-		r.Logger.Error("failed to authorize GQL CreateDog",
-			zap.String("user", user.ID))
-		return nil, err
-	}
-	if !ok {
-		return nil, fmt.Errorf("Unauthorized GQL CreateDog")
-	}
-	dbInputDog.OwnerID = user.ID
-	dbDog, err := r.Store.CreateDog(ctx, dbInputDog)
+	dbDog, err := r.CreateDbDog(ctx, dbInputDog)
 	if err != nil {
 		return nil, err
 	}
@@ -46,37 +30,12 @@ func (r *mutationResolver) CreateDog(ctx context.Context, input model.DogInput) 
 }
 
 func (r *mutationResolver) UpdateDog(ctx context.Context, id string, input model.DogInput) (*model.Dog, error) {
-	user, ok := appcontext.User(ctx)
-	if !ok {
-		r.Logger.Error("Failed to get User from context")
-		return nil, fmt.Errorf("Failed to get User from context")
-	}
-	dbid := uuid.MustParse(id)
-	dbDog, err := r.Store.FetchDog(ctx, dbid)
-	if err != nil {
-		return nil, err
-	}
-	ok, err = r.AuthorizeUpdateDog(user, dbDog)
-	if err != nil {
-		r.Logger.Error("failed to authorize GQL UpdateDog",
-			zap.String("user", user.ID))
-		return nil, err
-	}
-	if !ok {
-		return nil, fmt.Errorf("Unauthorized GQL UpdateDog")
-	}
 	dbInputDog, err := model.GqlDogInputToDbDog(input)
 	if err != nil {
 		return nil, err
 	}
-	dbDog.BirthDate = dbInputDog.BirthDate
-	dbDog.Breed = dbInputDog.Breed
-	dbDog.Name = dbInputDog.Name
-
-	dbDog, err = r.Store.UpdateDog(ctx, dbDog)
-	if err != nil {
-		return nil, err
-	}
+	dbInputDog.ID = uuid.MustParse(id)
+	dbDog, err := r.UpdateDbDog(ctx, dbInputDog)
 	gqlDog, err := model.DbDogToGqlDog(dbDog)
 	if err != nil {
 		return nil, err
@@ -118,21 +77,7 @@ func (r *mutationResolver) Logout(ctx context.Context, userID string) (*model.Ow
 }
 
 func (r *queryResolver) Dogs(ctx context.Context) ([]*model.Dog, error) {
-	user, ok := appcontext.User(ctx)
-	if !ok {
-		r.Logger.Error("Failed to get User from context")
-		return nil, fmt.Errorf("Failed to get User from context")
-	}
-	ok, err := r.AuthorizeFetchDogs(user)
-	if err != nil {
-		r.Logger.Error("failed to authorize GQL Dogs",
-			zap.String("user", user.ID))
-		return nil, err
-	}
-	if !ok {
-		return nil, fmt.Errorf("Unauthorized GQL Dogs")
-	}
-	dbDogs, err := r.Store.FetchDogs(ctx)
+	dbDogs, err := r.FetchDbDogs(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -149,24 +94,10 @@ func (r *queryResolver) Dogs(ctx context.Context) ([]*model.Dog, error) {
 }
 
 func (r *queryResolver) Dog(ctx context.Context, dogID string) (*model.Dog, error) {
-	user, ok := appcontext.User(ctx)
-	if !ok {
-		r.Logger.Error("Failed to get User from context")
-		return nil, fmt.Errorf("Failed to get User from context")
-	}
-	uuid := uuid.MustParse(dogID)
-	dbDog, err := r.Store.FetchDog(ctx, uuid)
+	dbid := uuid.MustParse(dogID)
+	dbDog, err := r.FetchDbDog(ctx, dbid)
 	if err != nil {
 		return nil, err
-	}
-	ok, err = r.AuthorizeFetchDog(user, dbDog)
-	if err != nil {
-		r.Logger.Error("failed to authorize GQL FetchDog",
-			zap.String("user", user.ID))
-		return nil, err
-	}
-	if !ok {
-		return nil, fmt.Errorf("Unauthorized GQL FetchDog")
 	}
 	gqlDog, err := model.DbDogToGqlDog(dbDog)
 	if err != nil {
