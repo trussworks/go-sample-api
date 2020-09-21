@@ -15,6 +15,7 @@ const (
 	loggerKey contextKey = iota
 	traceKey
 	userKey
+	sessionCreatorKey
 )
 
 // WithLogger returns a context with the given logger
@@ -49,4 +50,17 @@ func WithUser(ctx context.Context, user models.User) context.Context {
 func User(ctx context.Context) (models.User, bool) {
 	user, ok := ctx.Value(userKey).(models.User)
 	return user, ok
+}
+
+// SessionCreatorFunc creates a session for the client
+type SessionCreatorFunc func(session string) error
+
+// WithSessionCreator returns a context with the session creator function
+func WithSessionCreator(ctx context.Context, sessionCreator SessionCreatorFunc) context.Context {
+	return context.WithValue(ctx, sessionCreatorKey, sessionCreator)
+}
+
+func SessionCreator(ctx context.Context) (SessionCreatorFunc, bool) {
+	sessionCreator, ok := ctx.Value(sessionCreatorKey).(SessionCreatorFunc)
+	return sessionCreator, ok
 }

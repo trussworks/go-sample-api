@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"net/http"
+	"time"
 
 	"bin/bork/pkg/apis/v1/http/handlers"
 	"bin/bork/pkg/appcontext"
@@ -29,5 +30,54 @@ func (m FakeAuthorizeMiddlewareFactory) authorizeMiddleware(next http.Handler) h
 func NewFakeAuthorizeMiddleware(base handlers.HandlerBase) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return FakeAuthorizeMiddlewareFactory{base: base}.authorizeMiddleware(next)
+	}
+}
+
+const CookieName = "go-sample-api-session"
+
+type SimpleSessionMiddlewareFactory struct {
+	base handlers.HandlerBase
+	path string
+}
+
+func CreateCookie(session string, path string, now time.Time) http.Cookie {
+	expires := now.Add(20 * time.Minute)
+	return http.Cookie{
+		Name:    CookieName,
+		Value:   session,
+		Path:    path,
+		Expires: expires,
+		MaxAge:  86400,
+	}
+}
+
+func (m SimpleSessionMiddlewareFactory) authorizeMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := appcontext.WithSessionCreator(r.Context(),
+			func(session string) error {
+				// The cookie settings should be configurable,
+				// but as a proof of concept ...
+				cookie := CreateCookie(session, m.path,
+					m.base.Clock.Now())
+				http.SetCookie(w, &cookie)
+				return nil
+			})
+		sessionCookie, err := r.Cookie(CookieName)
+		if err == nil {
+			// in the real world, check if the session is
+			// valid and which user it is associated with
+			if sessionCookie.Value != "" {
+				user := models.User{ID: sessionCookie.Value}
+				ctx = appcontext.WithUser(ctx, user)
+			}
+		}
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func NewSimpleSessionMiddleware(base handlers.HandlerBase, path string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return SimpleSessionMiddlewareFactory{base: base, path: path}.
+			authorizeMiddleware(next)
 	}
 }

@@ -1,0 +1,12 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+Set-Cookie: go-sample-api-session=Owner; Path=/graphql; Expires=Thu, 01 Jan 1970 00:20:00 GMT; Max-Age=86400
+
+{
+  "data": {
+    "login": {
+      "email": "",
+      "id": "Owner"
+    }
+  }
+}

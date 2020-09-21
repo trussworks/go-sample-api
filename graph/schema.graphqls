@@ -1,0 +1,38 @@
+enum Breed {
+  CHIHUAHUA
+}
+
+scalar UUID
+scalar Time
+
+type Dog {
+  id: UUID!
+  name: String!
+  breed: Breed!
+  birthDate: Time!
+  owner: Owner!
+}
+
+type Owner {
+  id: UUID!
+  email: String!
+}
+
+type Query {
+  dogs: [Dog!]!
+  dog(dogId: ID!): Dog
+}
+
+input DogInput {
+  birthDate: Time!
+  breed: Breed!
+  name: String!
+}
+
+
+type Mutation {
+  createDog(input: DogInput!): Dog!
+  updateDog(id: ID!, input: DogInput!): Dog!
+  login(userId: ID!): Owner!
+  logout(userId: ID!): Owner!
+}

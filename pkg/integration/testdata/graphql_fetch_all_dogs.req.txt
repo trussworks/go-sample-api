@@ -1,0 +1,11 @@
+POST /graphql/query HTTP/1.1
+Host: example.com
+Content-Type: application/json
+Cookie: go-sample-api-session=Owner
+Content-Length: 128
+
+{
+  "operationName": null,
+  "query": "\n{\n  dogs {\n    id, name, breed, birthDate, owner { id }\n  }\n}",
+  "variables": {}
+}
