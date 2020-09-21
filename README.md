@@ -318,3 +318,19 @@ The APIs reside at `localhost:8080` when running.
 To run a test request,
 you can send a GET to the health check endpoint:
 `curl localhost:8080/api/v1/healthcheck`
+
+## Docker
+
+### Development
+
+This starts a docker container that mounts your local directory
+running air so that it will rebuild automatically as you change the code
+
+1. mkdir -p tmp
+1. docker-compose -f docker-compose.dev.yml up
+
+### Testing
+
+1. docker-compose -f docker-compose.test.yml down
+1. docker-compose -f docker-compose.test.yml run --rm bork_test
+
