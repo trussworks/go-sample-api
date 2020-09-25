@@ -20,16 +20,16 @@ func (s StoreTestSuite) TestFetchDog() {
 			BirthDate: s.clock.Now(),
 			OwnerID:   "Owner",
 		}
-		expectedDog, err := s.store.CreateDog(ctx, &insertDog)
+		dogID, err := s.store.CreateDog(ctx, &insertDog)
 		s.NoError(err)
 
-		dog, err := s.store.FetchDog(ctx, expectedDog.ID)
+		dog, err := s.store.FetchDog(ctx, *dogID)
 
 		s.NoError(err)
-		s.Equal(expectedDog.ID, dog.ID)
-		s.Equal(expectedDog.Name, dog.Name)
-		s.Equal(expectedDog.Breed, dog.Breed)
-		s.True(dog.BirthDate.Equal(expectedDog.BirthDate))
+		s.Equal(dog.ID, *dogID)
+		s.Equal(dog.Name, insertDog.Name)
+		s.Equal(dog.Breed, insertDog.Breed)
+		s.True(dog.BirthDate.Equal(insertDog.BirthDate))
 	})
 
 	s.Run("returns error when doesn't exist", func() {
@@ -109,14 +109,21 @@ func (s StoreTestSuite) TestUpdateDog() {
 			BirthDate: s.clock.Now(),
 			OwnerID:   "Owner",
 		}
-		createdDog, err := s.store.CreateDog(ctx, &dog)
+		dogID, err := s.store.CreateDog(ctx, &dog)
 		s.NoError(err)
+
+		createdDog, err := s.store.FetchDog(ctx, *dogID)
+		s.NoError(err)
+
 		createdDog.Name = "Lolita"
-
 		s.NotEqual(dog.Name, createdDog.Name)
-		actualDog, err := s.store.UpdateDog(ctx, createdDog)
 
+		err = s.store.UpdateDog(ctx, createdDog)
 		s.NoError(err)
+
+		actualDog, err := s.store.FetchDog(ctx, *dogID)
+		s.NoError(err)
+
 		s.Equal("Lolita", actualDog.Name)
 	})
 
@@ -129,11 +136,10 @@ func (s StoreTestSuite) TestUpdateDog() {
 			OwnerID:   "Owner",
 		}
 
-		actualDog, err := s.store.UpdateDog(ctx, &dog)
+		err := s.store.UpdateDog(ctx, &dog)
 
 		s.Error(err)
 		s.IsType(&apperrors.ResourceNotFoundError{}, err)
-		s.Nil(actualDog)
 	})
 }
 
@@ -148,13 +154,13 @@ func (s StoreTestSuite) TestFetchDogs() {
 			BirthDate: s.clock.Now(),
 			OwnerID:   "Owner",
 		}
-		expectedDog, err := s.store.CreateDog(ctx, &insertDog)
+		dogID, err := s.store.CreateDog(ctx, &insertDog)
 		s.NoError(err)
 
 		dogs, err := s.store.FetchDogs(ctx)
 
 		s.NoError(err)
 		s.Len(*dogs, 1)
-		s.Equal(expectedDog.ID, (*dogs)[0].ID)
+		s.Equal(*dogID, (*dogs)[0].ID)
 	})
 }

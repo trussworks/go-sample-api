@@ -26,11 +26,11 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 	fakeFetchDog := func(ctx context.Context, id uuid.UUID) (*models.Dog, error) {
 		return &dog, nil
 	}
-	fakeCreateDog := func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
-		return dog, nil
+	fakeCreateDog := func(ctx context.Context, dog *models.Dog) (*uuid.UUID, error) {
+		return &dog.ID, nil
 	}
-	fakeUpdateDog := func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
-		return dog, nil
+	fakeUpdateDog := func(ctx context.Context, dog *models.Dog) error {
+		return nil
 	}
 
 	requestContext := context.Background()
@@ -193,7 +193,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 	})
 
 	s.Run("when create fails POST returns 500", func() {
-		failCreateDog := func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
+		failCreateDog := func(ctx context.Context, dog *models.Dog) (*uuid.UUID, error) {
 			return nil, errors.New("failed to create dog")
 		}
 		rr := httptest.NewRecorder()
@@ -284,8 +284,8 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 	})
 
 	s.Run("when update fails PUT returns 500", func() {
-		failUpdateDog := func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
-			return nil, errors.New("failed to create dog")
+		failUpdateDog := func(ctx context.Context, dog *models.Dog) error {
+			return errors.New("failed to create dog")
 		}
 		rr := httptest.NewRecorder()
 		dogBytes, err := json.Marshal(dog)

@@ -14,8 +14,8 @@ import (
 )
 
 type fetchDog func(ctx context.Context, id uuid.UUID) (*models.Dog, error)
-type createDog func(ctx context.Context, dog *models.Dog) (*models.Dog, error)
-type updateDog func(ctx context.Context, dog *models.Dog) (*models.Dog, error)
+type createDog func(ctx context.Context, dog *models.Dog) (*uuid.UUID, error)
+type updateDog func(ctx context.Context, dog *models.Dog) error
 
 // NewDogHandler is a constructor for a DogHandler
 func NewDogHandler(base HandlerBase, fetch fetchDog, create createDog, update updateDog) DogHandler {
@@ -118,7 +118,13 @@ func (h DogHandler) Handle() http.HandlerFunc {
 				return
 			}
 
-			responseDog, err := h.createDog(r.Context(), &dog)
+			dogID, err := h.createDog(r.Context(), &dog)
+			if err != nil {
+				h.WriteErrorResponse(r.Context(), w, err)
+				return
+			}
+
+			responseDog, err := h.fetchDog(r.Context(), *dogID)
 			if err != nil {
 				h.WriteErrorResponse(r.Context(), w, err)
 				return
@@ -164,7 +170,12 @@ func (h DogHandler) Handle() http.HandlerFunc {
 				return
 			}
 
-			responseDog, err := h.updateDog(r.Context(), &dog)
+			if err = h.updateDog(r.Context(), &dog); err != nil {
+				h.WriteErrorResponse(r.Context(), w, err)
+				return
+			}
+
+			responseDog, err := h.fetchDog(r.Context(), dog.ID)
 			if err != nil {
 				h.WriteErrorResponse(r.Context(), w, err)
 				return

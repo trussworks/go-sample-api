@@ -171,8 +171,8 @@ func (s ServicesTestSuite) TestNewAuthorizeCreateDog() {
 }
 
 func (s ServicesTestSuite) TestServiceFactory_NewCreateDog() {
-	create := func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
-		return dog, nil
+	create := func(ctx context.Context, dog *models.Dog) (*uuid.UUID, error) {
+		return &dog.ID, nil
 	}
 
 	authorize := func(user models.User, dog *models.Dog) (bool, error) {
@@ -188,11 +188,10 @@ func (s ServicesTestSuite) TestServiceFactory_NewCreateDog() {
 		ctx := context.Background()
 		ctx = appcontext.WithUser(ctx, models.User{})
 
-		actualDog, err := createDog(ctx, &dog)
+		dogID, err := createDog(ctx, &dog)
 
 		s.NoError(err)
-		s.NotZero(actualDog.ID)
-		s.Equal(dog.Name, actualDog.Name)
+		s.NotZero(*dogID)
 	})
 
 	s.Run("returns error with no user context", func() {
@@ -249,8 +248,8 @@ func (s ServicesTestSuite) TestServiceFactory_NewCreateDog() {
 	s.Run("returns error when create returns error", func() {
 		createdDog := s.NewDog()
 		fetchErr := errors.New("failed to create")
-		failCreate := func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
-			return &createdDog, fetchErr
+		failCreate := func(ctx context.Context, dog *models.Dog) (*uuid.UUID, error) {
+			return nil, fetchErr
 		}
 		createDog := s.ServiceFactory.NewCreateDog(
 			authorize,
@@ -296,8 +295,8 @@ func (s ServicesTestSuite) TestNewAuthorizeUpdateDog() {
 }
 
 func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
-	update := func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
-		return dog, nil
+	update := func(ctx context.Context, dog *models.Dog) error {
+		return nil
 	}
 
 	fetch := func(ctx context.Context, uuid uuid.UUID) (*models.Dog, error) {
@@ -318,11 +317,9 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 		ctx := context.Background()
 		ctx = appcontext.WithUser(ctx, models.User{})
 
-		actualDog, err := updateDog(ctx, &dog)
+		err := updateDog(ctx, &dog)
 
 		s.NoError(err)
-		s.NotZero(actualDog.ID)
-		s.Equal(dog.Name, actualDog.Name)
 	})
 
 	s.Run("returns error with no user context", func() {
@@ -334,10 +331,9 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 		)
 		ctx := context.Background()
 
-		actualDog, err := updateDog(ctx, &dog)
+		err := updateDog(ctx, &dog)
 
 		s.IsType(&apperrors.ContextError{}, err)
-		s.Nil(actualDog)
 	})
 
 	s.Run("returns error when not authorized", func() {
@@ -353,10 +349,9 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 		ctx := context.Background()
 		ctx = appcontext.WithUser(ctx, models.User{})
 
-		actualDog, err := updateDog(ctx, &dog)
+		err := updateDog(ctx, &dog)
 
 		s.IsType(&apperrors.UnauthorizedError{}, err)
-		s.Nil(actualDog)
 	})
 
 	s.Run("returns error when authorize returns error", func() {
@@ -373,10 +368,9 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 		ctx := context.Background()
 		ctx = appcontext.WithUser(ctx, models.User{})
 
-		actualDog, err := updateDog(ctx, &dog)
+		err := updateDog(ctx, &dog)
 
 		s.Equal(authErr, err)
-		s.Nil(actualDog)
 	})
 
 	s.Run("returns error when fetch fail", func() {
@@ -392,17 +386,16 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 		ctx := context.Background()
 		ctx = appcontext.WithUser(ctx, models.User{})
 
-		actualDog, err := updateDog(ctx, &dog)
+		err := updateDog(ctx, &dog)
 
 		s.IsType(&apperrors.QueryError{}, err)
-		s.Nil(actualDog)
 	})
 
 	s.Run("returns error when update returns error", func() {
 		updatedDog := s.NewDog()
 		fetchErr := errors.New("failed to update")
-		failUpdate := func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
-			return &updatedDog, fetchErr
+		failUpdate := func(ctx context.Context, dog *models.Dog) error {
+			return fetchErr
 		}
 		updateDog := s.ServiceFactory.NewUpdateDog(
 			authorize,
@@ -412,10 +405,9 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 		ctx := context.Background()
 		ctx = appcontext.WithUser(ctx, models.User{})
 
-		actualDog, err := updateDog(ctx, &updatedDog)
+		err := updateDog(ctx, &updatedDog)
 
 		s.IsType(&apperrors.QueryError{}, err)
-		s.Nil(actualDog)
 	})
 }
 
