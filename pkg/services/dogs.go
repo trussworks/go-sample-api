@@ -76,9 +76,9 @@ func NewAuthorizeCreateDog() func(user models.User, dog *models.Dog) (bool, erro
 // NewCreateDog returns a service function for creating a dog
 func (f ServiceFactory) NewCreateDog(
 	authorize func(user models.User, dog *models.Dog) (bool, error),
-	create func(ctx context.Context, dog *models.Dog) (*models.Dog, error),
-) func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
-	return func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
+	create func(ctx context.Context, dog *models.Dog) (*uuid.UUID, error),
+) func(ctx context.Context, dog *models.Dog) (*uuid.UUID, error) {
+	return func(ctx context.Context, dog *models.Dog) (*uuid.UUID, error) {
 		logger, ok := appcontext.Logger(ctx)
 		if !ok {
 			logger = f.logger
@@ -108,7 +108,7 @@ func (f ServiceFactory) NewCreateDog(
 			return nil, &unauthorizedError
 		}
 		dog.OwnerID = user.ID
-		createdDog, err := create(ctx, dog)
+		dogID, err := create(ctx, dog)
 		if err != nil {
 			queryError := apperrors.QueryError{
 				Err:       err,
@@ -117,7 +117,7 @@ func (f ServiceFactory) NewCreateDog(
 			}
 			return nil, &queryError
 		}
-		return createdDog, nil
+		return dogID, nil
 	}
 }
 
@@ -134,10 +134,10 @@ func NewAuthorizeUpdateDog() func(user models.User, dog *models.Dog) (bool, erro
 // NewUpdateDog returns a service function for updating a dog
 func (f ServiceFactory) NewUpdateDog(
 	authorize func(user models.User, dog *models.Dog) (bool, error),
-	update func(ctx context.Context, dog *models.Dog) (*models.Dog, error),
+	update func(ctx context.Context, dog *models.Dog) error,
 	fetch func(ctx context.Context, id uuid.UUID) (*models.Dog, error),
-) func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
-	return func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
+) func(ctx context.Context, dog *models.Dog) error {
+	return func(ctx context.Context, dog *models.Dog) error {
 		logger, ok := appcontext.Logger(ctx)
 		if !ok {
 			logger = f.logger
@@ -150,7 +150,7 @@ func (f ServiceFactory) NewUpdateDog(
 				Resource:  apperrors.ContextResourceUser,
 				Operation: apperrors.ContextOperationGet,
 			}
-			return nil, &contextError
+			return &contextError
 		}
 		existingDog, err := fetch(ctx, dog.ID)
 		if err != nil {
@@ -159,12 +159,12 @@ func (f ServiceFactory) NewUpdateDog(
 				Resource:  models.Dog{},
 				Operation: apperrors.QueryUpdate,
 			}
-			return nil, &queryError
+			return &queryError
 		}
 		ok, err = authorize(user, existingDog)
 		if err != nil {
 			logger.Error("failed to authorize updateDog", zap.String("user", user.ID))
-			return nil, err
+			return err
 		}
 		if !ok {
 			unauthorizedError := apperrors.UnauthorizedError{
@@ -173,19 +173,18 @@ func (f ServiceFactory) NewUpdateDog(
 				Resource:  dog,
 				Err:       err,
 			}
-			return nil, &unauthorizedError
+			return &unauthorizedError
 		}
 		dog.OwnerID = user.ID
-		createdDog, err := update(ctx, dog)
-		if err != nil {
+		if err := update(ctx, dog); err != nil {
 			queryError := apperrors.QueryError{
 				Err:       err,
 				Resource:  dog,
 				Operation: apperrors.QueryUpdate,
 			}
-			return nil, &queryError
+			return &queryError
 		}
-		return createdDog, nil
+		return nil
 	}
 }
 

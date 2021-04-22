@@ -31,7 +31,7 @@ func (s *Store) FetchDog(ctx context.Context, id uuid.UUID) (*models.Dog, error)
 }
 
 // CreateDog creates a dog in the DB
-func (s *Store) CreateDog(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
+func (s *Store) CreateDog(ctx context.Context, dog *models.Dog) (*uuid.UUID, error) {
 	dog.ID = uuid.New()
 	const createDogSQL = `
 		INSERT INTO dog (
@@ -53,11 +53,11 @@ func (s *Store) CreateDog(ctx context.Context, dog *models.Dog) (*models.Dog, er
 	if err != nil {
 		return nil, err
 	}
-	return s.FetchDog(ctx, dog.ID)
+	return &dog.ID, nil
 }
 
 // UpdateDog creates a dog in the DB
-func (s *Store) UpdateDog(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
+func (s *Store) UpdateDog(ctx context.Context, dog *models.Dog) error {
 	const updateDogSQL = `
 		UPDATE dog 
 		SET
@@ -69,16 +69,16 @@ func (s *Store) UpdateDog(ctx context.Context, dog *models.Dog) (*models.Dog, er
 
 	result, err := s.db.NamedExec(updateDogSQL, &dog)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if rows == 0 {
-		return nil, &apperrors.ResourceNotFoundError{Resource: dog}
+		return &apperrors.ResourceNotFoundError{Resource: dog}
 	}
-	return s.FetchDog(ctx, dog.ID)
+	return nil
 }
 
 // FetchDogs queries the DB for dogs
