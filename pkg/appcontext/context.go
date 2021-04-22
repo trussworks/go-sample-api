@@ -15,6 +15,7 @@ const (
 	loggerKey contextKey = iota
 	traceKey
 	userKey
+	requestLogKey
 )
 
 // WithLogger returns a context with the given logger
@@ -49,4 +50,56 @@ func WithUser(ctx context.Context, user models.User) context.Context {
 func User(ctx context.Context) (models.User, bool) {
 	user, ok := ctx.Value(userKey).(models.User)
 	return user, ok
+}
+
+// requestLog keeps track of all the info to be logged in the request log line
+type requestLog struct {
+	fields       []zap.Field
+	errorMessage string
+	error        bool
+}
+
+// LogRequestField adds a zap.Field to the line logged at the end of the request
+func LogRequestField(ctx context.Context, field zap.Field) {
+	requestLog, ok := ctx.Value(requestLogKey).(*requestLog)
+	if !ok {
+		panic("Configuration Error, make sure you call WithEmptyRequestLog before LogRequestField")
+	}
+
+	// TODO, figure out how to make this threadsafe
+	requestLog.fields = append(requestLog.fields, field)
+}
+
+// LogRequestError adds a message to the request log line and also sets it to log at the Error level
+func LogRequestError(ctx context.Context, message string, err error) {
+	requestLog, ok := ctx.Value(requestLogKey).(*requestLog)
+	if !ok {
+		panic("Configuration Error, make sure you call WithEmptyRequestLog before LogRequestField")
+	}
+
+	requestLog.fields = append(requestLog.fields, zap.Error(err))
+	requestLog.errorMessage = message
+	requestLog.error = true
+}
+
+// WithEmptyRequestLog returns a context with the request User
+func WithEmptyRequestLog(ctx context.Context) context.Context {
+	return context.WithValue(ctx, requestLogKey, &requestLog{})
+}
+
+// RequestLogFields returns all the fields added during the request
+func RequestLogFields(ctx context.Context) ([]zap.Field, bool) {
+	requestLog, ok := ctx.Value(requestLogKey).(*requestLog)
+
+	return requestLog.fields, ok
+}
+
+// RequestErrorInfo returns three variables:
+//     did_error bool: true if LogRequestError was called
+//     error_message string: the message logged with the call to LogRequestError
+//     ok bool: wether this data was sucessfully extracted from the context
+func RequestErrorInfo(ctx context.Context) (bool, string, bool) {
+	requestLog, ok := ctx.Value(requestLogKey).(*requestLog)
+
+	return requestLog.error, requestLog.errorMessage, ok
 }

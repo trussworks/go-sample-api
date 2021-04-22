@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -28,11 +29,6 @@ func (f ServiceFactory) NewFetchDog(
 	fetch func(ctx context.Context, id uuid.UUID) (*models.Dog, error),
 ) func(ctx context.Context, id uuid.UUID) (*models.Dog, error) {
 	return func(ctx context.Context, id uuid.UUID) (*models.Dog, error) {
-		logger, ok := appcontext.Logger(ctx)
-		if !ok {
-			logger = f.logger
-			logger.Error("failed to get logger from context in FetchDog service")
-		}
 		dog, err := fetch(ctx, id)
 		if err != nil {
 			queryError := apperrors.QueryError{
@@ -51,10 +47,11 @@ func (f ServiceFactory) NewFetchDog(
 			}
 			return nil, &contextError
 		}
+		appcontext.LogRequestField(ctx, zap.String("user_id", user.ID))
+
 		ok, err = authorize(user, dog)
 		if err != nil {
-			logger.Error("failed to authorize fetchDog", zap.String("user", user.ID))
-			return nil, err
+			return nil, fmt.Errorf("failed to authorize fetchDog: %w", err)
 		}
 		if !ok {
 			unauthorizedError := apperrors.UnauthorizedError{

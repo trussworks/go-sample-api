@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 
 	"bin/bork/pkg/appcontext"
 	"bin/bork/pkg/apperrors"
@@ -69,7 +70,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDog() {
 			authorize,
 			fetch,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		dog, err := fetchDog(ctx, uuid.New())
@@ -99,13 +100,37 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDog() {
 			noAuthorize,
 			fetch,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		dog, err := fetchDog(ctx, uuid.New())
 
 		s.IsType(&apperrors.UnauthorizedError{}, err)
 		s.Nil(dog)
+	})
+
+	s.Run("logs the user id", func() {
+		noAuthorize := func(models.User, *models.Dog) (bool, error) {
+			return false, nil
+		}
+		fetchDog := s.ServiceFactory.NewFetchDog(
+			noAuthorize,
+			fetch,
+		)
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
+		ctx = appcontext.WithUser(ctx, models.User{
+			ID: "foo",
+		})
+
+		_, _ = fetchDog(ctx, uuid.New())
+
+		fields, ok := appcontext.RequestLogFields(ctx)
+		if !ok {
+			s.T().Fatal("couldn't get the fields")
+		}
+
+		s.Equal(zap.String("user_id", "foo"), fields[0])
+
 	})
 
 	s.Run("returns error when authorize returns error", func() {
@@ -117,12 +142,12 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDog() {
 			failAuthorize,
 			fetch,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		dog, err := fetchDog(ctx, uuid.New())
 
-		s.Equal(authErr, err)
+		s.True(errors.Is(err, authErr))
 		s.Nil(dog)
 	})
 
@@ -135,7 +160,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDog() {
 			authorize,
 			failFetch,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		dog, err := fetchDog(ctx, uuid.New())
@@ -185,7 +210,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewCreateDog() {
 			authorize,
 			create,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		actualDog, err := createDog(ctx, &dog)
@@ -218,7 +243,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewCreateDog() {
 			noAuthorize,
 			create,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		actualDog, err := createDog(ctx, &dog)
@@ -237,7 +262,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewCreateDog() {
 			failAuthorize,
 			create,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		actualDog, err := createDog(ctx, &dog)
@@ -256,7 +281,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewCreateDog() {
 			authorize,
 			failCreate,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		actualDog, err := createDog(ctx, &createdDog)
@@ -315,7 +340,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 			update,
 			fetch,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		actualDog, err := updateDog(ctx, &dog)
@@ -350,7 +375,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 			update,
 			fetch,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		actualDog, err := updateDog(ctx, &dog)
@@ -370,7 +395,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 			update,
 			fetch,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		actualDog, err := updateDog(ctx, &dog)
@@ -389,7 +414,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 			update,
 			failFetch,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		actualDog, err := updateDog(ctx, &dog)
@@ -409,7 +434,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewUpdateDog() {
 			failUpdate,
 			fetch,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		actualDog, err := updateDog(ctx, &updatedDog)
@@ -462,7 +487,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDogs() {
 			authorize,
 			fetch,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		actualDogs, err := fetchDogs(ctx)
@@ -492,7 +517,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDogs() {
 			noAuthorize,
 			fetch,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		dog, err := fetchDogs(ctx)
@@ -510,7 +535,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDogs() {
 			failAuthorize,
 			fetch,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		dog, err := fetchDogs(ctx)
@@ -528,7 +553,7 @@ func (s ServicesTestSuite) TestServiceFactory_NewFetchDogs() {
 			authorize,
 			failFetch,
 		)
-		ctx := context.Background()
+		ctx := appcontext.WithEmptyRequestLog(context.Background())
 		ctx = appcontext.WithUser(ctx, models.User{})
 
 		dog, err := fetchDogs(ctx)

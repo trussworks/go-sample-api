@@ -115,6 +115,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		)
 		s.NoError(err)
 		req = mux.SetURLVars(req, map[string]string{"dog_id": dog.ID.String()})
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 
 		DogHandler{
 			s.base,
@@ -160,6 +161,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 			"/dog",
 			nil,
 		)
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 		s.NoError(err)
 
 		DogHandler{
@@ -181,6 +183,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 			bytes.NewBufferString("{x: nil}"),
 		)
 		s.NoError(err)
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 
 		DogHandler{
 			s.base,
@@ -206,6 +209,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 			bytes.NewBuffer(dogBytes),
 		)
 		s.NoError(err)
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 
 		DogHandler{
 			s.base,
@@ -228,6 +232,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 			bytes.NewBuffer(dogBytes),
 		)
 		s.NoError(err)
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 
 		DogHandler{
 			s.base,
@@ -252,6 +257,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 			nil,
 		)
 		s.NoError(err)
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 
 		DogHandler{
 			s.base,
@@ -272,6 +278,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 			bytes.NewBufferString("{x: nil}"),
 		)
 		s.NoError(err)
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 
 		DogHandler{
 			s.base,
@@ -297,6 +304,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 			bytes.NewBuffer(dogBytes),
 		)
 		s.NoError(err)
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 
 		DogHandler{
 			s.base,
@@ -317,6 +325,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 			bytes.NewBufferString(""),
 		)
 		s.NoError(err)
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 		req = mux.SetURLVars(req, map[string]string{"dog_id": dog.ID.String()})
 
 		DogHandler{

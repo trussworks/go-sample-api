@@ -33,7 +33,9 @@ func (w *failWriter) Header() http.Header {
 }
 
 func (s HandlerTestSuite) TestWriteErrorResponse() {
-	ctx, _ := appcontext.WithTrace(context.Background())
+	ctx := context.Background()
+	ctx, _ = appcontext.WithTrace(ctx)
+	ctx = appcontext.WithEmptyRequestLog(ctx)
 	traceID, ok := appcontext.Trace(ctx)
 	s.True(ok)
 
