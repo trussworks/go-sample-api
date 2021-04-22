@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#
+# build the `sample` app
+#
+
+builddir="$(git rev-parse --show-toplevel)"
+
+( set -x -u ; go build -a -o "$builddir"/bin/bork "$builddir"/cmd/bork )
