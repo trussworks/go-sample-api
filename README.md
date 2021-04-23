@@ -325,7 +325,7 @@ Logging in this project is intentionally restricted to a single structured log l
 The log line will be either Info or Error Level and will have a variety of key/value pairs associated with it.
 The primary reason for doing things this way is to aid in debugging issues in production by pre-bucketing all info by request. This allows you to use line-oriented tools to quickly determine if there are commonalities between errors. 
 
-The line logging is performed by the middleware in pkg/server/httpserver/logger.go, in code you interacti with it with these methods from appcontext. 
+The line logging is performed by the middleware in pkg/server/httpserver/logger.go, in code you interact with it with these methods from appcontext.
 
 > //LogRequestField adds a zap.Field to the line logged at the end of the request
 > LogRequestField(ctx context.Context, field zap.Field)
@@ -336,6 +336,6 @@ You can call this anytime you have a piece of information that you might like as
 * number_of_dogs
 
 > // LogRequestError adds a message to the request log line and also sets it to log at the Error level
-> LogRequestError(ctx context.Context, message string, err error)
+> LogRequestError(ctx context.Context, err error)
 
-You should call this at most once in a request if you want the request to log at the Error level. The message will be logged with an "error_message" key and the error will be logged with the zap standard "error" key. In general, these should generally correspond with requests that have 5xx status codes. Error log levels may trigger notificactions and require investigation. 
+You should call this at most once in a request if you want the request to log at the Error level. The error will be logged with the zap standard "error" key. In general, these should generally correspond with requests that have 5xx status codes. Error log levels may trigger notificactions and require investigation.

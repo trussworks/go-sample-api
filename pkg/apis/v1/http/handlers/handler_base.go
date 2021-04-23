@@ -90,7 +90,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 			)
 		default:
 			code = http.StatusInternalServerError
-			appcontext.LogRequestError(ctx, "DB Query Error", appErr)
+			appcontext.LogRequestError(ctx, fmt.Errorf("DB Query Error: %w", appErr))
 			response = newErrorResponse(
 				code,
 				"Something went wrong",
@@ -99,7 +99,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		}
 	case *apperrors.ContextError:
 		code = http.StatusInternalServerError
-		appcontext.LogRequestError(ctx, "Context Error", appErr)
+		appcontext.LogRequestError(ctx, fmt.Errorf("Context Error: %w", appErr))
 		response = newErrorResponse(
 			code,
 			"Something went wrong",
@@ -138,7 +138,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 		)
 	default:
 		code = http.StatusInternalServerError
-		appcontext.LogRequestError(ctx, "Unexpected Error", appErr)
+		appcontext.LogRequestError(ctx, fmt.Errorf("Unexpected Error: %w", appErr))
 		response = newErrorResponse(
 			code,
 			"Something went wrong",
@@ -149,7 +149,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 	// get error as response body
 	responseBody, err := json.Marshal(response)
 	if err != nil {
-		appcontext.LogRequestError(ctx, "Failed to marshal error response. Defaulting to generic", err)
+		appcontext.LogRequestError(ctx, fmt.Errorf("Failed to marshal error response. Defaulting to generic: %w", err))
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
@@ -159,7 +159,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 	w.WriteHeader(code)
 	_, err = w.Write(responseBody)
 	if err != nil {
-		appcontext.LogRequestError(ctx, "Failed to write error response. Defaulting to generic.", err)
+		appcontext.LogRequestError(ctx, fmt.Errorf("Failed to write error response. Defaulting to generic: %w", err))
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}

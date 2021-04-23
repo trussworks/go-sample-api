@@ -90,7 +90,7 @@ func (f ServiceFactory) NewCreateDog(
 		}
 		ok, err := authorize(user, dog)
 		if err != nil {
-			appcontext.LogRequestError(ctx, "failed to authorize createDog", err)
+			appcontext.LogRequestError(ctx, fmt.Errorf("failed to authorize createDog: %w", err))
 			return nil, err
 		}
 		if !ok {
@@ -153,7 +153,7 @@ func (f ServiceFactory) NewUpdateDog(
 		}
 		ok, err = authorize(user, existingDog)
 		if err != nil {
-			appcontext.LogRequestError(ctx, "failed to authorize updateDog", err)
+			appcontext.LogRequestError(ctx, fmt.Errorf("failed to authorize updateDog: %w", err))
 			return nil, err
 		}
 		if !ok {
@@ -203,7 +203,7 @@ func (f ServiceFactory) NewFetchDogs(
 		}
 		ok, err := authorize(user)
 		if err != nil {
-			appcontext.LogRequestError(ctx, "failed to authorize fetchDogs", err)
+			appcontext.LogRequestError(ctx, fmt.Errorf("failed to authorize fetchDogs: %w", err))
 			return nil, err
 		}
 		if !ok {

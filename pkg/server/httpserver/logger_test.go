@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 
@@ -66,7 +67,7 @@ func (s ServerTestSuite) TestLoggerMiddleware() {
 			err := errors.New("this test is in error")
 
 			// let's add some log fields
-			appcontext.LogRequestError(r.Context(), "the test errored just like we planned", err)
+			appcontext.LogRequestError(r.Context(), fmt.Errorf("the test errored just like we planned: %w", err))
 
 			w.WriteHeader(500)
 		})
@@ -82,8 +83,10 @@ func (s ServerTestSuite) TestLoggerMiddleware() {
 
 		s.Contains(line.Context, zap.String("host", "example.com"))
 		s.Contains(line.Context, zap.Int("http_status", 500))
-		s.Contains(line.Context, zap.String("error_message", "the test errored just like we planned"))
 
+		err := line.ContextMap()["error"]
+		s.NotNil(err)
+		s.NotContains(err, "the test errored just like we planned")
 	})
 
 }
