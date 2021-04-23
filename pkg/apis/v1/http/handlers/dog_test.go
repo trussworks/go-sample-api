@@ -45,6 +45,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		)
 		s.NoError(err)
 		req = mux.SetURLVars(req, map[string]string{"dog_id": dog.ID.String()})
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 
 		DogHandler{
 			s.base,
@@ -70,6 +71,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		)
 		s.NoError(err)
 		req = mux.SetURLVars(req, map[string]string{"dog_id": ""})
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 
 		DogHandler{
 			s.base,
@@ -91,6 +93,7 @@ func (s HandlerTestSuite) TestDogHandler_Handle() {
 		)
 		s.NoError(err)
 		req = mux.SetURLVars(req, map[string]string{"dog_id": "badID"})
+		req = req.WithContext(appcontext.WithEmptyRequestLog(req.Context()))
 
 		DogHandler{
 			s.base,

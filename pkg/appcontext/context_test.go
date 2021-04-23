@@ -22,27 +22,6 @@ func TestContextTestSuite(t *testing.T) {
 	suite.Run(t, contextTestSuite)
 }
 
-func (s ContextTestSuite) TestWithLogger() {
-	ctx := context.Background()
-	expectedLogger := zap.NewNop()
-
-	ctx = WithLogger(ctx, expectedLogger)
-	logger := ctx.Value(loggerKey).(*zap.Logger)
-
-	s.Equal(expectedLogger, logger)
-}
-
-func (s ContextTestSuite) TestLogger() {
-	ctx := context.Background()
-	expectedLogger := zap.NewNop()
-	ctx = context.WithValue(ctx, loggerKey, expectedLogger)
-
-	logger, ok := Logger(ctx)
-
-	s.True(ok)
-	s.Equal(expectedLogger, logger)
-}
-
 func (s ContextTestSuite) TestWithTrace() {
 	ctx, tID := WithTrace(context.Background())
 	traceID := ctx.Value(traceKey).(uuid.UUID)
