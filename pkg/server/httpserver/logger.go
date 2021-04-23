@@ -34,7 +34,6 @@ func loggerMiddleware(logger *zap.Logger, next http.Handler) http.Handler {
 		} else {
 			logger.Error("Failed to get trace ID from context")
 		}
-		ctx = appcontext.WithLogger(ctx, logger)
 		ctx = appcontext.WithEmptyRequestLog(ctx)
 
 		fields := []zap.Field{

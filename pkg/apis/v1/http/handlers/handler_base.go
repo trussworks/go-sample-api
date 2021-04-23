@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/facebookgo/clock"
@@ -60,15 +61,10 @@ func (r *errorResponse) withMap(errMap map[string]string) {
 
 // WriteErrorResponse writes a response for a given application error
 func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWriter, appErr error) {
-	logger, ok := appcontext.Logger(ctx)
-	if !ok {
-		logger = b.logger
-	}
-
 	traceID, ok := appcontext.Trace(ctx)
 	if !ok {
 		traceID = uuid.New()
-		logger.With(zap.String("traceID", traceID.String()))
+		appcontext.LogRequestField(ctx, zap.String("traceID", traceID.String()))
 	}
 
 	// get code and response
@@ -125,7 +121,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 			traceID,
 		)
 	case *apperrors.UnknownRouteError:
-		logger.Info("Returning status not found error from handler", zap.Error(appErr))
+		appcontext.LogRequestField(ctx, zap.Error(fmt.Errorf("Returning status not found error from handler: %w", appErr)))
 		code = http.StatusNotFound
 		response = newErrorResponse(
 			code,
@@ -153,7 +149,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 	// get error as response body
 	responseBody, err := json.Marshal(response)
 	if err != nil {
-		logger.Error("Failed to marshal error response. Defaulting to generic.")
+		appcontext.LogRequestError(ctx, "Failed to marshal error response. Defaulting to generic", err)
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
@@ -163,7 +159,7 @@ func (b HandlerBase) WriteErrorResponse(ctx context.Context, w http.ResponseWrit
 	w.WriteHeader(code)
 	_, err = w.Write(responseBody)
 	if err != nil {
-		logger.Error("Failed to write error response. Defaulting to generic.")
+		appcontext.LogRequestError(ctx, "Failed to write error response. Defaulting to generic.", err)
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
