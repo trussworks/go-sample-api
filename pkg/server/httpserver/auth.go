@@ -7,6 +7,8 @@ import (
 	"bin/bork/pkg/appcontext"
 	"bin/bork/pkg/apperrors"
 	"bin/bork/pkg/models"
+
+	"go.uber.org/zap"
 )
 
 type FakeAuthorizeMiddlewareFactory struct {
@@ -18,8 +20,10 @@ func (m FakeAuthorizeMiddlewareFactory) authorizeMiddleware(next http.Handler) h
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			m.base.WriteErrorResponse(r.Context(), w, &apperrors.UnauthorizedError{})
+			return
 		}
 		ctx := appcontext.WithUser(r.Context(), models.User{ID: authHeader})
+		appcontext.LogRequestField(ctx, zap.String("user", authHeader))
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

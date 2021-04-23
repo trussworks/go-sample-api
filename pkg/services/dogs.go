@@ -88,7 +88,6 @@ func (f ServiceFactory) NewCreateDog(
 			}
 			return nil, &contextError
 		}
-		appcontext.LogRequestField(ctx, zap.String("user", user.ID))
 		ok, err := authorize(user, dog)
 		if err != nil {
 			appcontext.LogRequestError(ctx, "failed to authorize createDog", err)
@@ -143,7 +142,6 @@ func (f ServiceFactory) NewUpdateDog(
 			}
 			return nil, &contextError
 		}
-		appcontext.LogRequestField(ctx, zap.String("user", user.ID))
 		existingDog, err := fetch(ctx, dog.ID)
 		if err != nil {
 			queryError := apperrors.QueryError{
@@ -203,7 +201,6 @@ func (f ServiceFactory) NewFetchDogs(
 			}
 			return nil, &contextError
 		}
-		appcontext.LogRequestField(ctx, zap.String("user", user.ID))
 		ok, err := authorize(user)
 		if err != nil {
 			appcontext.LogRequestError(ctx, "failed to authorize fetchDogs", err)
