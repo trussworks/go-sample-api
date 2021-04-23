@@ -3,27 +3,13 @@ package httpserver
 import (
 	"net/http"
 
+	"github.com/felixge/httpsnoop"
 	"go.uber.org/zap"
 
 	"bin/bork/pkg/appcontext"
 )
 
 const traceField string = "traceID"
-
-// In order to log the status we need to wrap the ResponseWriter
-type statusRecorder struct {
-	http.ResponseWriter
-	status int
-}
-
-func newStatusRecorder(w http.ResponseWriter) *statusRecorder {
-	return &statusRecorder{w, 200}
-}
-
-func (rec *statusRecorder) WriteHeader(code int) {
-	rec.status = code
-	rec.ResponseWriter.WriteHeader(code)
-}
 
 func loggerMiddleware(logger *zap.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -49,11 +35,14 @@ func loggerMiddleware(logger *zap.Logger, next http.Handler) http.Handler {
 			zap.String("user-agent", r.UserAgent()),
 		}
 
-		rec := newStatusRecorder(w)
-		next.ServeHTTP(rec, r.WithContext(ctx))
+		metrics := httpsnoop.CaptureMetrics(next, w, r.WithContext(ctx))
 
 		// get a couple more default fields
-		fields = append(fields, zap.Int("http_status", rec.status))
+		fields = append(fields,
+			zap.Int("http_status", metrics.Code),
+			zap.Int64("bytes_written", metrics.Written),
+			zap.Duration("duration", metrics.Duration),
+		)
 
 		requestFields, ok := appcontext.RequestLogFields(ctx)
 		if !ok {
