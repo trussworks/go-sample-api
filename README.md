@@ -321,21 +321,37 @@ you can send a GET to the health check endpoint:
 
 ### Logging
 
-Logging in this project is intentionally restricted to a single structured log line per request.
-The log line will be either Info or Error Level and will have a variety of key/value pairs associated with it.
-The primary reason for doing things this way is to aid in debugging issues in production by pre-bucketing all info by request. This allows you to use line-oriented tools to quickly determine if there are commonalities between errors. 
+Logging in this project is intentionally restricted to a single structured log
+line per request. The log line will be either Info or Error Level and will have
+a variety of key/value pairs associated with it. The primary reason for doing
+things this way is to aid in debugging issues in production by bucketing
+all info by request. This allows you to use line-oriented tools to quickly
+determine if there are commonalities between errors.
 
-The line logging is performed by the middleware in pkg/server/httpserver/logger.go, in code you interact with it with these methods from appcontext.
+The line logging is performed by the middleware in
+`pkg/server/httpserver/logger.go`, in code you interact with it with these
+methods from `appcontext`.
 
-> //LogRequestField adds a zap.Field to the line logged at the end of the request
-> LogRequestField(ctx context.Context, field zap.Field)
+```go
+// LogRequestField adds a zap.Field to the line logged at the end of the request
+LogRequestField(ctx context.Context, field zap.Field)
+```
 
-You can call this anytime you have a piece of information that you might like associated with this request. e.g.:
-* user_id
-* auth_type
-* number_of_dogs
+You can call this anytime you have a piece of information that you might like
+associated with this request. e.g.:
 
-> // LogRequestError adds a message to the request log line and also sets it to log at the Error level
-> LogRequestError(ctx context.Context, err error)
+* `user_id`
+* `auth_type`
+* `number_of_dogs`
 
-You should call this at most once in a request if you want the request to log at the Error level. The error will be logged with the zap standard "error" key. In general, these should generally correspond with requests that have 5xx status codes. Error log levels may trigger notificactions and require investigation.
+```go
+// LogRequestError adds a message to the request log line and also sets it to
+// log at the Error level
+LogRequestError(ctx context.Context, err error)
+```
+
+You should call this at most once in a request if you want the request to log
+at the Error level. The error will be logged with the zap standard `error` key.
+In general, these should generally correspond with requests that have `5XX`
+status codes. Error log levels may trigger notifications and require
+investigation.
