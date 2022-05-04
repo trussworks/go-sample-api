@@ -1,17 +1,17 @@
 ---
 repos:
-  - repo: git://github.com/igorshubovych/markdownlint-cli
+  - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.22.0
     hooks:
       - id: markdownlint
         entry: markdownlint --ignore docs/adr/index.md
 
-  - repo: git://github.com/detailyang/pre-commit-shell
+  - repo: https://github.com/detailyang/pre-commit-shell
     rev: 1.0.5
     hooks:
       - id: shell-lint
 
-  - repo: git://github.com/trussworks/pre-commit-hooks
+  - repo: https://github.com/trussworks/pre-commit-hooks
     rev: v0.0.3
     hooks:
       - id: gen-docs
@@ -26,7 +26,7 @@ repos:
           )$
       - id: circleci-validate
 
-  - repo: git://github.com/golangci/golangci-lint
+  - repo: https://github.com/golangci/golangci-lint
     rev: v1.24.0
     hooks:
       - id: golangci-lint
