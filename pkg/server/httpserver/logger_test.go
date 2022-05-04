@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 
@@ -13,46 +14,6 @@ import (
 )
 
 func (s ServerTestSuite) TestLoggerMiddleware() {
-	s.Run("get a new logger with trace ID", func() {
-
-		req := httptest.NewRequest("GET", "/dogs/", nil)
-		rr := httptest.NewRecorder()
-		traceMiddleware := NewTraceMiddleware()
-		prodLogger, err := zap.NewProduction()
-		s.NoError(err)
-		loggerMiddleware := NewLoggerMiddleware(prodLogger)
-
-		// this is the actual test, since the context is cancelled post request
-		testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			logger, ok := appcontext.Logger(r.Context())
-
-			s.True(ok)
-			s.NotEqual(prodLogger, logger)
-		})
-
-		traceMiddleware(loggerMiddleware(testHandler)).ServeHTTP(rr, req)
-	})
-
-	s.Run("get the same logger with no trace ID", func() {
-
-		req := httptest.NewRequest("GET", "/dogs/", nil)
-		rr := httptest.NewRecorder()
-		// need a new logger, because no-op won't use options
-		prodLogger, err := zap.NewProduction()
-		s.NoError(err)
-		loggerMiddleware := NewLoggerMiddleware(prodLogger)
-
-		// this is the actual test, since the context is cancelled post request
-		testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			logger, ok := appcontext.Logger(r.Context())
-
-			s.True(ok)
-			s.Equal(prodLogger, logger)
-		})
-
-		loggerMiddleware(testHandler).ServeHTTP(rr, req)
-	})
-
 	s.Run("do a single log field", func() {
 
 		req := httptest.NewRequest("GET", "/dogs/", nil)
@@ -106,7 +67,7 @@ func (s ServerTestSuite) TestLoggerMiddleware() {
 			err := errors.New("this test is in error")
 
 			// let's add some log fields
-			appcontext.LogRequestError(r.Context(), "the test errored just like we planned", err)
+			appcontext.LogRequestError(r.Context(), fmt.Errorf("the test errored just like we planned: %w", err))
 
 			w.WriteHeader(500)
 		})
@@ -122,8 +83,10 @@ func (s ServerTestSuite) TestLoggerMiddleware() {
 
 		s.Contains(line.Context, zap.String("host", "example.com"))
 		s.Contains(line.Context, zap.Int("http_status", 500))
-		s.Contains(line.Context, zap.String("error_message", "the test errored just like we planned"))
 
+		err := line.ContextMap()["error"]
+		s.NotNil(err)
+		s.NotContains(err, "the test errored just like we planned")
 	})
 
 }

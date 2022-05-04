@@ -20,7 +20,6 @@ func loggerMiddleware(logger *zap.Logger, next http.Handler) http.Handler {
 		} else {
 			logger.Error("Failed to get trace ID from context")
 		}
-		ctx = appcontext.WithLogger(ctx, logger)
 		ctx = appcontext.WithEmptyRequestLog(ctx)
 
 		fields := []zap.Field{
@@ -51,13 +50,10 @@ func loggerMiddleware(logger *zap.Logger, next http.Handler) http.Handler {
 
 		allfields := append(fields, requestFields...)
 
-		didError, errorMessage, ok := appcontext.RequestErrorInfo(ctx)
-		if !ok {
-			logger.Error("Error info not found on this request")
-		}
-
-		if didError {
-			allfields = append(allfields, zap.String("error_message", errorMessage))
+		err := appcontext.RequestErrorInfo(ctx)
+		if err != nil {
+			// the error body was already added to the list
+			// of all fields in LogRequestError
 			logger.Error("Request Complete", allfields...)
 		} else {
 			logger.Info("Request Complete", allfields...)

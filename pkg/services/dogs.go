@@ -79,11 +79,6 @@ func (f ServiceFactory) NewCreateDog(
 	create func(ctx context.Context, dog *models.Dog) (*models.Dog, error),
 ) func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
 	return func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
-		logger, ok := appcontext.Logger(ctx)
-		if !ok {
-			logger = f.logger
-			logger.Error("failed to get logger from context in CreateDog service")
-		}
 		user, ok := appcontext.User(ctx)
 		if !ok {
 			contextError := apperrors.ContextError{
@@ -95,7 +90,7 @@ func (f ServiceFactory) NewCreateDog(
 		}
 		ok, err := authorize(user, dog)
 		if err != nil {
-			logger.Error("failed to authorize createDog", zap.String("user", user.ID))
+			appcontext.LogRequestError(ctx, fmt.Errorf("failed to authorize createDog: %w", err))
 			return nil, err
 		}
 		if !ok {
@@ -138,11 +133,6 @@ func (f ServiceFactory) NewUpdateDog(
 	fetch func(ctx context.Context, id uuid.UUID) (*models.Dog, error),
 ) func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
 	return func(ctx context.Context, dog *models.Dog) (*models.Dog, error) {
-		logger, ok := appcontext.Logger(ctx)
-		if !ok {
-			logger = f.logger
-			logger.Error("failed to get logger from context in UpdateDog service")
-		}
 		user, ok := appcontext.User(ctx)
 		if !ok {
 			contextError := apperrors.ContextError{
@@ -163,7 +153,7 @@ func (f ServiceFactory) NewUpdateDog(
 		}
 		ok, err = authorize(user, existingDog)
 		if err != nil {
-			logger.Error("failed to authorize updateDog", zap.String("user", user.ID))
+			appcontext.LogRequestError(ctx, fmt.Errorf("failed to authorize updateDog: %w", err))
 			return nil, err
 		}
 		if !ok {
@@ -202,11 +192,6 @@ func (f ServiceFactory) NewFetchDogs(
 	fetch func(ctx context.Context) (*models.Dogs, error),
 ) func(ctx context.Context) (*models.Dogs, error) {
 	return func(ctx context.Context) (*models.Dogs, error) {
-		logger, ok := appcontext.Logger(ctx)
-		if !ok {
-			logger = f.logger
-			logger.Error("failed to get logger from context in FetchDog service")
-		}
 		user, ok := appcontext.User(ctx)
 		if !ok {
 			contextError := apperrors.ContextError{
@@ -218,7 +203,7 @@ func (f ServiceFactory) NewFetchDogs(
 		}
 		ok, err := authorize(user)
 		if err != nil {
-			logger.Error("failed to authorize fetchDogs", zap.String("user", user.ID))
+			appcontext.LogRequestError(ctx, fmt.Errorf("failed to authorize fetchDogs: %w", err))
 			return nil, err
 		}
 		if !ok {
